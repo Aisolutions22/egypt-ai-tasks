@@ -9,54 +9,204 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
+import { Route as AuthenticatedAddTaskRouteImport } from './routes/_authenticated/add-task'
+import { Route as AuthenticatedAddColleagueRouteImport } from './routes/_authenticated/add-colleague'
 import { Route as ApiPublicSeedOwnerRouteImport } from './routes/api/public/seed-owner'
+import { Route as AuthenticatedTaskIdRouteImport } from './routes/_authenticated/task/$id'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedArchiveRoute = AuthenticatedArchiveRouteImport.update({
+  id: '/archive',
+  path: '/archive',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAddTaskRoute = AuthenticatedAddTaskRouteImport.update({
+  id: '/add-task',
+  path: '/add-task',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAddColleagueRoute =
+  AuthenticatedAddColleagueRouteImport.update({
+    id: '/add-colleague',
+    path: '/add-colleague',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const ApiPublicSeedOwnerRoute = ApiPublicSeedOwnerRouteImport.update({
   id: '/api/public/seed-owner',
   path: '/api/public/seed-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTaskIdRoute = AuthenticatedTaskIdRouteImport.update({
+  id: '/task/$id',
+  path: '/task/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/add-colleague': typeof AuthenticatedAddColleagueRoute
+  '/add-task': typeof AuthenticatedAddTaskRoute
+  '/archive': typeof AuthenticatedArchiveRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/task/$id': typeof AuthenticatedTaskIdRoute
   '/api/public/seed-owner': typeof ApiPublicSeedOwnerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/add-colleague': typeof AuthenticatedAddColleagueRoute
+  '/add-task': typeof AuthenticatedAddTaskRoute
+  '/archive': typeof AuthenticatedArchiveRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/task/$id': typeof AuthenticatedTaskIdRoute
   '/api/public/seed-owner': typeof ApiPublicSeedOwnerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/add-colleague': typeof AuthenticatedAddColleagueRoute
+  '/_authenticated/add-task': typeof AuthenticatedAddTaskRoute
+  '/_authenticated/archive': typeof AuthenticatedArchiveRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/task/$id': typeof AuthenticatedTaskIdRoute
   '/api/public/seed-owner': typeof ApiPublicSeedOwnerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/seed-owner'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/add-colleague'
+    | '/add-task'
+    | '/archive'
+    | '/dashboard'
+    | '/settings'
+    | '/task/$id'
+    | '/api/public/seed-owner'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/seed-owner'
-  id: '__root__' | '/' | '/api/public/seed-owner'
+  to:
+    | '/'
+    | '/login'
+    | '/add-colleague'
+    | '/add-task'
+    | '/archive'
+    | '/dashboard'
+    | '/settings'
+    | '/task/$id'
+    | '/api/public/seed-owner'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/add-colleague'
+    | '/_authenticated/add-task'
+    | '/_authenticated/archive'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/settings'
+    | '/_authenticated/task/$id'
+    | '/api/public/seed-owner'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
   ApiPublicSeedOwnerRoute: typeof ApiPublicSeedOwnerRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/archive': {
+      id: '/_authenticated/archive'
+      path: '/archive'
+      fullPath: '/archive'
+      preLoaderRoute: typeof AuthenticatedArchiveRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/add-task': {
+      id: '/_authenticated/add-task'
+      path: '/add-task'
+      fullPath: '/add-task'
+      preLoaderRoute: typeof AuthenticatedAddTaskRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/add-colleague': {
+      id: '/_authenticated/add-colleague'
+      path: '/add-colleague'
+      fullPath: '/add-colleague'
+      preLoaderRoute: typeof AuthenticatedAddColleagueRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/api/public/seed-owner': {
       id: '/api/public/seed-owner'
@@ -65,13 +215,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSeedOwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/task/$id': {
+      id: '/_authenticated/task/$id'
+      path: '/task/$id'
+      fullPath: '/task/$id'
+      preLoaderRoute: typeof AuthenticatedTaskIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedAddColleagueRoute: typeof AuthenticatedAddColleagueRoute
+  AuthenticatedAddTaskRoute: typeof AuthenticatedAddTaskRoute
+  AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedTaskIdRoute: typeof AuthenticatedTaskIdRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAddColleagueRoute: AuthenticatedAddColleagueRoute,
+  AuthenticatedAddTaskRoute: AuthenticatedAddTaskRoute,
+  AuthenticatedArchiveRoute: AuthenticatedArchiveRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTaskIdRoute: AuthenticatedTaskIdRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
   ApiPublicSeedOwnerRoute: ApiPublicSeedOwnerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

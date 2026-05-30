@@ -1,0 +1,100 @@
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { useAllProfiles } from "@/lib/use-profile";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ColorPicker } from "@/components/color-picker";
+import { createColleague } from "@/lib/admin.functions";
+import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/_authenticated/add-colleague")({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw redirect({ to: "/login" });
+    const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
+    if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
+  },
+  component: AddColleaguePage,
+});
+
+function AddColleaguePage() {
+  const navigate = useNavigate();
+  const { data: profiles = [] } = useAllProfiles();
+  const create = useServerFn(createColleague);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [role, setRole] = useState<"owner" | "admin" | "employee">("employee");
+  const [color, setColor] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const taken = profiles.map((p) => p.color);
+
+  async function submit() {
+    if (!name.trim()) return toast.error("الاسم مطلوب");
+    if (!email.trim()) return toast.error("البريد مطلوب");
+    if (password.length < 8) return toast.error("كلمة المرور ٨ أحرف على الأقل");
+    if (!color) return toast.error("اختر لوناً");
+    setSaving(true);
+    try {
+      await create({ data: { full_name: name.trim(), email: email.trim(), password, role, color } });
+      toast.success("تم إنشاء الحساب ✓");
+      navigate({ to: "/settings" });
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "حدث خطأ");
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-5">
+      <h1 className="text-2xl font-bold">إضافة زميل</h1>
+      <div className="glass rounded-2xl p-5 space-y-4">
+        <div>
+          <Label>الاسم الكامل</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" />
+        </div>
+        <div>
+          <Label>البريد الإلكتروني</Label>
+          <Input type="email" dir="ltr" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5" />
+        </div>
+        <div>
+          <Label>كلمة المرور</Label>
+          <div className="relative mt-1.5">
+            <Input type={showPw ? "text" : "password"} dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="button" onClick={() => setShowPw((v) => !v)}
+              className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
+              {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <Label>الصلاحية</Label>
+          <div className="mt-2 flex gap-2">
+            {(["owner", "admin", "employee"] as const).map((r) => (
+              <button key={r} type="button" onClick={() => setRole(r)}
+                className={cn("px-4 h-10 rounded-full border-2 text-sm",
+                  role === r ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
+                {r === "owner" ? "Owner" : r === "admin" ? "Admin" : "موظف"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label>اللون</Label>
+          <div className="mt-2"><ColorPicker value={color} onChange={setColor} takenColors={taken} /></div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">
+            {saving ? "جاري الحفظ..." : "إنشاء"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
