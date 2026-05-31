@@ -43,8 +43,13 @@ function AuthedLayout() {
   // Close drawer on route change
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
-  const items = NAV.filter((n) => !n.adminOnly || isAdmin);
+  const isOwner = me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const items = NAV.filter((n) => {
+    if (n.adminOnly) return isAdmin;
+    if (n.adminOrOwner) return isAdmin || isOwner;
+    return true;
+  });
 
   async function signOut() {
     await supabase.auth.signOut();
