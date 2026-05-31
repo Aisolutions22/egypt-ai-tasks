@@ -19,6 +19,7 @@ export function HomeMessageBanner() {
   const { data: me } = useMyProfile();
   const qc = useQueryClient();
   const [showAll, setShowAll] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const { data: msgs = [] } = useQuery({
     queryKey: ["home-messages"],
@@ -39,6 +40,7 @@ export function HomeMessageBanner() {
   if (msgs.length === 0) return null;
   const latest = msgs[0];
   const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const needsClamp = (latest.content?.length ?? 0) > 110 || (latest.content?.match(/\n/g)?.length ?? 0) >= 2;
 
   async function dismiss(id: string) {
     await supabase.from("home_messages").update({ is_active: false }).eq("id", id);
@@ -48,31 +50,49 @@ export function HomeMessageBanner() {
   return (
     <>
       <div
-        className="rounded-2xl p-4 md:p-5 text-white shadow-lg flex items-center gap-3"
+        className="rounded-2xl p-4 md:p-5 text-white shadow-lg flex items-start gap-3"
         style={{ background: "linear-gradient(135deg,#FF6B2B,#FF9A5C)" }}
       >
-        <span className="px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold shrink-0">
-          Home Message
-        </span>
-        <div className="flex-1 font-medium leading-relaxed">{latest.content}</div>
-        {msgs.length > 1 && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold hover:bg-white/35"
+        <div className="flex-1 min-w-0">
+          <span className="inline-block px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold mb-2">
+            رسالة اليوم
+          </span>
+          <p
+            className={expanded ? "whitespace-pre-wrap" : "line-clamp-2"}
+            style={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}
           >
-            +{String(msgs.length - 1).replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d])} أخرى
-          </button>
-        )}
-        {isAdmin && (
-          <button
-            aria-label="إخفاء"
-            onClick={() => dismiss(latest.id)}
-            className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 inline-flex items-center justify-center"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
+            {latest.content}
+          </p>
+          {needsClamp && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-2 text-xs font-bold underline underline-offset-2 hover:opacity-90"
+            >
+              {expanded ? "أخفِ" : "اقرأ المزيد"}
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {msgs.length > 1 && (
+            <button
+              onClick={() => setShowAll(true)}
+              className="px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold hover:bg-white/35"
+            >
+              +{String(msgs.length - 1).replace(/[0-9]/g, (d) => "٠١٢٣٤٥٦٧٨٩"[+d])} أخرى
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              aria-label="إخفاء"
+              onClick={() => dismiss(latest.id)}
+              className="h-8 w-8 rounded-full bg-white/20 hover:bg-white/30 inline-flex items-center justify-center"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
+
 
       <Dialog open={showAll} onOpenChange={setShowAll}>
         <DialogContent className="max-w-lg">
