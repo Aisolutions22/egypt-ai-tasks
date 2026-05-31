@@ -19,6 +19,16 @@ export const Route = createFileRoute("/_authenticated/add-colleague")({
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
     if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
   },
+  head: () => ({
+    meta: [
+      { title: "إضافة زميل — Ai Tasks Solutions" },
+      { name: "description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
+      { property: "og:title", content: "إضافة زميل — Ai Tasks Solutions" },
+      { property: "og:description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/add-colleague" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AddColleaguePage,
 });
 
@@ -68,6 +78,7 @@ function AddColleaguePage() {
           <div className="relative mt-1.5">
             <Input type={showPw ? "text" : "password"} dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="button" onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
               className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
               {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>

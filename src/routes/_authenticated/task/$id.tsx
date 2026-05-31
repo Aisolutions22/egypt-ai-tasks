@@ -14,6 +14,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
+  head: () => ({
+    meta: [
+      { title: "تفاصيل المهمة — Ai Tasks Solutions" },
+      { name: "description", content: "اعرض تفاصيل المهمة، حالة الإنجاز، المحادثة بين الفريق، والمرفقات في Ai Tasks Solutions." },
+      { property: "og:title", content: "تفاصيل المهمة — Ai Tasks Solutions" },
+      { property: "og:description", content: "اعرض تفاصيل المهمة، حالة الإنجاز، المحادثة بين الفريق، والمرفقات في Ai Tasks Solutions." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: TaskDetail,
 });
 
@@ -230,7 +239,7 @@ function TaskDetail() {
             {replyTo && (
               <div className="flex items-start gap-2 bg-accent/40 rounded-lg px-3 py-2 text-xs">
                 <div className="flex-1 line-clamp-2 text-muted-foreground">رد على: {replyTo.content}</div>
-                <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
+                <button onClick={() => setReplyTo(null)} aria-label="إلغاء الرد"><X className="h-3.5 w-3.5" /></button>
               </div>
             )}
             <Textarea

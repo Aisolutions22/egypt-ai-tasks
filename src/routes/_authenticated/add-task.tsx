@@ -20,6 +20,16 @@ export const Route = createFileRoute("/_authenticated/add-task")({
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
     if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
   },
+  head: () => ({
+    meta: [
+      { title: "إضافة مهمة — Ai Tasks Solutions" },
+      { name: "description", content: "أنشئ مهمة جديدة، حدد الموظفين المسؤولين، وحدد الموعد النهائي في Ai Tasks Solutions." },
+      { property: "og:title", content: "إضافة مهمة — Ai Tasks Solutions" },
+      { property: "og:description", content: "أنشئ مهمة جديدة، حدد الموظفين المسؤولين، وحدد الموعد النهائي في Ai Tasks Solutions." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/add-task" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AddTaskPage,
 });
 

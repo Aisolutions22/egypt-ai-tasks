@@ -71,14 +71,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Ai Tasks Solutions" },
-      { name: "description", content: "نظام إدارة المهام الذكي — Ai Tasks Solutions" },
-      { property: "og:title", content: "Ai Tasks Solutions" },
-      { name: "twitter:title", content: "Ai Tasks Solutions" },
-      { property: "og:description", content: "نظام إدارة المهام الذكي — Ai Tasks Solutions" },
-      { name: "twitter:description", content: "نظام إدارة المهام الذكي — Ai Tasks Solutions" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a613ce3e-4b10-43ba-96ca-ce5554757c87/id-preview-0d731923--ae70dee4-ea03-4f9e-8a5f-d388a352933a.lovable.app-1780143947729.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a613ce3e-4b10-43ba-96ca-ce5554757c87/id-preview-0d731923--ae70dee4-ea03-4f9e-8a5f-d388a352933a.lovable.app-1780143947729.png" },
+      { title: "Ai Tasks Solutions — نظام إدارة المهام الذكي" },
+      { name: "description", content: "Ai Tasks Solutions: نظام عربي ذكي لإدارة المهام، توزيع الأعمال، متابعة الإنجاز، والتواصل بين الفريق في مكان واحد." },
+      { property: "og:site_name", content: "Ai Tasks Solutions" },
+      { property: "og:title", content: "Ai Tasks Solutions — نظام إدارة المهام الذكي" },
+      { name: "twitter:title", content: "Ai Tasks Solutions — نظام إدارة المهام الذكي" },
+      { property: "og:description", content: "Ai Tasks Solutions: نظام عربي ذكي لإدارة المهام، توزيع الأعمال، متابعة الإنجاز، والتواصل بين الفريق في مكان واحد." },
+      { name: "twitter:description", content: "Ai Tasks Solutions: نظام عربي ذكي لإدارة المهام، توزيع الأعمال، متابعة الإنجاز، والتواصل بين الفريق في مكان واحد." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -89,6 +89,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap",
+      },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Ai Tasks Solutions",
+              url: "https://ai-tasks-solutions.lovable.app/",
+            },
+            {
+              "@type": "WebSite",
+              name: "Ai Tasks Solutions",
+              url: "https://ai-tasks-solutions.lovable.app/",
+              inLanguage: "ar",
+              description: "نظام عربي ذكي لإدارة المهام، توزيع الأعمال، متابعة الإنجاز، والتواصل بين الفريق في مكان واحد.",
+            },
+          ],
+        }),
       },
     ],
   }),
