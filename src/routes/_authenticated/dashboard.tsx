@@ -93,7 +93,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
-      {isAdmin && <HomeMessageBanner />}
+      <HomeMessageBanner />
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
@@ -130,8 +130,8 @@ function Dashboard() {
         </div>
       )}
 
-      {isAdmin ? (
-        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} />
+      {canSeeAll ? (
+        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} isAdmin={isAdmin} />
       ) : (
         <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
           {tasks
