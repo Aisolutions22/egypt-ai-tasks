@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+
 
 export const Route = createFileRoute("/login")({
   beforeLoad: async () => {
@@ -48,14 +48,17 @@ function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 relative">
+    <main className="min-h-screen flex flex-col items-center justify-center p-4 relative">
       <AnimatedBg />
+      <img
+        src="/logo.png"
+        alt="Ai Tasks Solutions"
+        className="mb-6 w-auto"
+        style={{ maxWidth: 180, height: "auto" }}
+      />
       <div className="glass rounded-3xl p-8 w-full max-w-md shadow-xl">
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="h-14 w-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-            <Sparkles className="h-7 w-7" />
-          </div>
-          <h1 className="mt-4 text-2xl font-bold">Ai Tasks Solutions — نظام إدارة المهام الذكي</h1>
+          <h1 className="text-2xl font-bold">Ai Tasks Solutions — نظام إدارة المهام الذكي</h1>
           <p className="text-sm text-muted-foreground mt-1">سجّل دخولك للمتابعة</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
