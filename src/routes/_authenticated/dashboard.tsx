@@ -38,7 +38,7 @@ function Dashboard() {
   const { data: profiles = [] } = useAllProfiles();
   const isAdmin = me?.role === "admin" || me?.role === "owner";
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ["dashboard-tasks", me?.id, isAdmin],
     enabled: !!me?.id,
     queryFn: async () => {
@@ -52,11 +52,18 @@ function Dashboard() {
     },
   });
 
+  const [filter, setFilter] = useState<"all" | "inProgress" | "late" | "done">("all");
+
   const profileById = new Map(profiles.map((p) => [p.id, p]));
-  const total = tasks.length;
-  const inProgress = tasks.filter((t) => t.status === "inProgress").length;
-  const late = tasks.filter((t) => t.status === "late").length;
-  const done = tasks.filter((t) => t.status === "done").length;
+  const total = allTasks.length;
+  const inProgress = allTasks.filter((t) => t.status === "inProgress").length;
+  const late = allTasks.filter((t) => t.status === "late").length;
+  const done = allTasks.filter((t) => t.status === "done").length;
+
+  const tasks = useMemo(() => {
+    if (filter === "all") return allTasks;
+    return allTasks.filter((t) => t.status === filter);
+  }, [allTasks, filter]);
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
@@ -70,27 +77,30 @@ function Dashboard() {
           </p>
         </div>
         {isAdmin && (
-          <Button asChild className="bg-primary text-primary-foreground hover:opacity-90">
+          <Button asChild className="bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
             <Link to="/add-task"><Plus className="h-4 w-4" />مهمة جديدة</Link>
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={ListTodo}    label="إجمالي المهام" value={total}      tint="#2563EB" />
-        <StatCard icon={Clock}       label="قيد التنفيذ"     value={inProgress} tint="#D97706" />
-        <StatCard icon={AlertTriangle} label="متأخرة"        value={late}       tint="#DC2626" />
-        <StatCard icon={CheckCircle2} label="منتهية"         value={done}       tint="#059669" />
+        <StatCard icon={ListTodo}     label="إجمالي المهام" value={total}      tint="#2563EB" active={filter === "all"}        onClick={() => setFilter("all")} />
+        <StatCard icon={Clock}        label="قيد التنفيذ"    value={inProgress} tint="#D97706" active={filter === "inProgress"} onClick={() => setFilter(filter === "inProgress" ? "all" : "inProgress")} />
+        <StatCard icon={AlertTriangle} label="متأخرة"       value={late}       tint="#DC2626" active={filter === "late"}       onClick={() => setFilter(filter === "late" ? "all" : "late")} />
+        <StatCard icon={CheckCircle2} label="منتهية"        value={done}       tint="#059669" active={filter === "done"}       onClick={() => setFilter(filter === "done" ? "all" : "done")} />
       </div>
 
       {isLoading && <div className="text-sm text-muted-foreground">جاري التحميل...</div>}
 
       {!isLoading && tasks.length === 0 && (
         <div className="glass rounded-2xl p-10 text-center">
-          <div className="text-4xl mb-2">✨</div>
-          <p className="text-muted-foreground">
-            لا توجد مهام نشطة حالياً — ابدأ بإضافة مهمة جديد
-          </p>
+          <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-foreground font-medium">لا توجد مهام حالياً</p>
+          {isAdmin && (
+            <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
+              <Link to="/add-task"><Plus className="h-4 w-4" />إضافة مهمة جديدة</Link>
+            </Button>
+          )}
         </div>
       )}
 
@@ -112,17 +122,24 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, tint }: { icon: typeof ListTodo; label: string; value: number; tint: string }) {
+function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: typeof ListTodo; label: string; value: number; tint: string; active?: boolean; onClick?: () => void }) {
   return (
-    <div className="glass rounded-xl p-4 flex items-center gap-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "glass rounded-xl p-4 flex items-center gap-3 text-right transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full",
+        active && "ring-2 ring-primary",
+      )}
+    >
       <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ background: tint + "22", color: tint }}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-xl font-bold">{toArabicDigits(value)}</div>
+        <div className="text-xl font-bold text-foreground">{toArabicDigits(value)}</div>
       </div>
-    </div>
+    </button>
   );
 }
 
