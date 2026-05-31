@@ -43,7 +43,7 @@
 :root {
   --radius: 0.875rem;
   /* Brand */
-  --background: oklch(0.975 0.025 60);                /* #FFF5F0 warm cream */
+  --background: oklch(0.16 0.04 280);                 /* #0F0F1A deep navy */
   --foreground: oklch(0.18 0.04 270);                 /* #1A1A2E */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.04 270);
