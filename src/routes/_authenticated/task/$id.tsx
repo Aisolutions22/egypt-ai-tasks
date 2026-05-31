@@ -113,6 +113,7 @@ function TaskDetail() {
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
   }
   async function markLate() {
+    if (!task) return;
     await supabase.from("tasks").update({ status: "late" }).eq("id", id);
     toast.success("تم تعليمه كمتأخر");
     const assignees = task.task_assignments?.map((a: { user_id: string }) => a.user_id) ?? [];
@@ -126,6 +127,7 @@ function TaskDetail() {
     }
     qc.invalidateQueries({ queryKey: ["task", id] });
   }
+
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
