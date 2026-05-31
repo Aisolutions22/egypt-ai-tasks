@@ -124,25 +124,28 @@ function AddTaskPage() {
           <Label>تفاصيل المهمة</Label>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" rows={5} />
         </div>
-        <div>
-          <Label>منسوب إلى</Label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
-            {employees.map((e) => {
-              const sel = picked.has(e.id);
-              return (
-                <button key={e.id} type="button" onClick={() => toggle(e.id)}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
-                    sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
-                  )}>
-                  <span className="text-sm">{e.full_name}</span>
-                  <AvatarCircle name={e.full_name} color={e.color} size={26} />
-                </button>
-              );
-            })}
+        {kind === "task" && (
+          <div>
+            <Label>منسوب إلى</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
+              {employees.map((e) => {
+                const sel = picked.has(e.id);
+                return (
+                  <button key={e.id} type="button" onClick={() => toggle(e.id)}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
+                      sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
+                    )}>
+                    <span className="text-sm">{e.full_name}</span>
+                    <AvatarCircle name={e.full_name} color={e.color} size={26} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
         <div>
           <Label>Deadline</Label>
           <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1.5" dir="ltr" />
