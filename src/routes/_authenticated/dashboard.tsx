@@ -147,35 +147,52 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
   tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null;
 }) {
   const employees = profiles.filter((p) => p.role === "employee");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   if (employees.length === 0) {
     return (
-      <div className="glass rounded-2xl p-10 text-center text-muted-foreground text-sm">
-        لا يوجد موظفون بعد. أضف زميلاً للبدء.
+      <div className="glass rounded-2xl p-10 text-center">
+        <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+        <p className="text-foreground font-medium">لا يوجد زملاء بعد</p>
+        <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
+          <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة زميل</Link>
+        </Button>
       </div>
     );
+  }
+  function toggle(id: string) {
+    setCollapsed((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
   return (
     <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
       {employees.map((emp) => {
         const empTasks = tasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
+        const isCollapsed = collapsed.has(emp.id);
         return (
           <div key={emp.id} className="glass rounded-2xl p-3 space-y-3">
-            <div className="flex items-center gap-3 px-1">
+            <button
+              type="button"
+              onClick={() => toggle(emp.id)}
+              className="w-full flex items-center gap-3 px-1 text-right hover:opacity-80 active:scale-[0.98] transition"
+              aria-expanded={!isCollapsed}
+            >
               <AvatarCircle name={emp.full_name} color={emp.color} />
               <div className="leading-tight flex-1 min-w-0">
-                <div className="font-bold text-sm truncate">{emp.full_name}</div>
+                <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
               </div>
-            </div>
-            <div className="space-y-2">
-              {empTasks.length === 0 && (
-                <div className="text-xs text-muted-foreground px-1">لا مهام</div>
-              )}
-              {empTasks.map((t) => {
-                const a = t.task_assignments.find((x) => x.user_id === emp.id);
-                return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} />;
-              })}
-            </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
+            </button>
+            {!isCollapsed && (
+              <div className="space-y-2">
+                {empTasks.length === 0 && (
+                  <div className="text-xs text-muted-foreground px-1">لا مهام</div>
+                )}
+                {empTasks.map((t) => {
+                  const a = t.task_assignments.find((x) => x.user_id === emp.id);
+                  return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} />;
+                })}
+              </div>
+            )}
           </div>
         );
       })}
