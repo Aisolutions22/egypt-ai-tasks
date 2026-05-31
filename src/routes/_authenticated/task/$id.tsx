@@ -255,8 +255,15 @@ function TaskDetail() {
             )}
             <Textarea
               value={content} onChange={(e) => setContent(e.target.value)}
-              placeholder="اكتب ردك هنا..." rows={3}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void send();
+                }
+              }}
+              placeholder="اكتب ردك هنا... (Enter للإرسال، Shift+Enter لسطر جديد)" rows={3}
             />
+
             {myAssignment && (
               <div>
                 <div className="flex justify-between text-xs mb-1.5">
