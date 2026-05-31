@@ -63,6 +63,7 @@ function AddColleaguePage() {
     setSaving(true);
     try {
       await create({ data: { full_name: name.trim(), email: email.trim(), password, role, color: finalColor } });
+      await queryClient.invalidateQueries({ queryKey: ["profiles"] });
       toast.success("تم إنشاء الحساب ✓");
       navigate({ to: "/settings" });
     } catch (e: unknown) {
