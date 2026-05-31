@@ -55,7 +55,7 @@ function AuthedLayout() {
       <AnimatedBg />
 
       {/* Mobile top bar */}
-      <header className="md:hidden sticky top-0 z-30 glass border-b flex items-center justify-between px-3 h-14">
+      <header className="md:hidden sticky top-0 z-30 glass border-b flex items-center justify-between px-3 h-14 text-sidebar-foreground">
         <button
           aria-label="فتح القائمة"
           className="h-11 w-11 inline-flex items-center justify-center rounded-lg hover:bg-accent"
