@@ -58,8 +58,13 @@ export function HomeMessageBanner() {
           <span className="inline-block px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold mb-2">
             رسالة اليوم
           </span>
+          {latest.title && (
+            <div className="font-bold text-base md:text-lg mb-1" style={{ color: "#fff" }}>
+              {latest.title}
+            </div>
+          )}
           <p
-            className={expanded ? "whitespace-pre-wrap" : "line-clamp-2"}
+            className={expanded ? "whitespace-pre-wrap" : "line-clamp-3"}
             style={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}
           >
             {latest.content}
