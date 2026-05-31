@@ -35,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/add-colleague")({
 
 function AddColleaguePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: profiles = [] } = useAllProfiles();
   const create = useServerFn(createColleague);
   const [name, setName] = useState("");
