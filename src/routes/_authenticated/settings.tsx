@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { deleteColleague } from "@/lib/admin.functions";
+import { deleteColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Trash2, Moon, Sun } from "lucide-react";
+import { Trash2, Moon, Sun, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -33,6 +33,7 @@ function SettingsPage() {
   const { data: profiles = [] } = useAllProfiles();
   const qc = useQueryClient();
   const del = useServerFn(deleteColleague);
+  const resetPw = useServerFn(resetColleaguePassword);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
   const isOwner = me?.role === "owner";
 
@@ -93,6 +94,17 @@ function SettingsPage() {
     try { await del({ data: { profile_id: id } }); toast.success("تم الحذف"); qc.invalidateQueries(); }
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
   }
+
+  async function resetColleaguePw(id: string, full_name: string) {
+    const pw = prompt(`كلمة المرور الجديدة للزميل ${full_name} (8 أحرف على الأقل):`);
+    if (!pw) return;
+    if (pw.length < 8) return toast.error("٨ أحرف على الأقل");
+    try {
+      await resetPw({ data: { profile_id: id, password: pw } });
+      toast.success(`تم تعيين كلمة المرور. شاركها مع ${full_name}: ${pw}`, { duration: 10000 });
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
+  }
+
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -158,11 +170,17 @@ function SettingsPage() {
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
                 </div>
+                {isAdmin && p.role !== "owner" && (
+                  <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                )}
                 {isOwner && p.role !== "owner" && (
                   <Button size="icon" variant="ghost" onClick={() => removeColleague(p.id, p.full_name)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 )}
+
               </div>
             ))}
           </div>
