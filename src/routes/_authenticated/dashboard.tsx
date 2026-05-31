@@ -57,12 +57,12 @@ function Dashboard() {
     },
   });
 
-  // Auto-mark overdue tasks as 'late' on every dashboard load.
+  // Auto-mark overdue tasks as 'late' (admin only — owner is read-only).
   useEffect(() => {
     if (!isAdmin || allTasksRaw.length === 0) return;
     const nowIso = new Date().toISOString();
     const overdue = allTasksRaw.filter(
-      (t) => t.deadline < nowIso && t.status !== "closed" && t.status !== "done" && t.status !== "late",
+      (t) => t.deadline < nowIso && t.is_active && t.status !== "closed" && t.status !== "done" && t.status !== "late",
     );
     if (overdue.length === 0) return;
     (async () => {
@@ -75,13 +75,15 @@ function Dashboard() {
 
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   // Counters per spec
-  const total = allTasksRaw.length;                                         // every task ever
-  const inProgress = allTasksRaw.filter((t) => t.status !== "closed").length; // all non-closed
-  const late = allTasksRaw.filter((t) => t.status === "late").length;
+  const total = allTasksRaw.length;
+  const inProgress = allTasksRaw.filter(
+    (t) => t.is_active && (t.status === "new" || t.status === "inProgress" || t.status === "late"),
+  ).length;
+  const late = allTasksRaw.filter((t) => t.status === "late" && t.is_active).length;
   const done = allTasksRaw.filter((t) => t.status === "closed").length;
 
-  // Dashboard list shows tasks still active (not closed/archived).
-  const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.status !== "closed"), [allTasksRaw]);
+  // Dashboard list shows tasks where is_active = true.
+  const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.is_active), [allTasksRaw]);
 
   const tasks = useMemo(() => {
     if (filter === "all") return activeTasks;
