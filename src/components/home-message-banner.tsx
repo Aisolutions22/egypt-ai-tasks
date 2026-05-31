@@ -8,6 +8,7 @@ import { formatArDateTime } from "@/lib/date-ar";
 
 type HM = {
   id: string;
+  title: string | null;
   content: string;
   created_by: string | null;
   expires_at: string;
