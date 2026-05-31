@@ -15,6 +15,16 @@ import { toast } from "sonner";
 import { Trash2, Moon, Sun } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  head: () => ({
+    meta: [
+      { title: "Settings — Ai Tasks Solutions" },
+      { name: "description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الزملاء في Ai Tasks Solutions." },
+      { property: "og:title", content: "Settings — Ai Tasks Solutions" },
+      { property: "og:description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الزملاء في Ai Tasks Solutions." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/settings" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: SettingsPage,
 });
 

@@ -15,6 +15,16 @@ export const Route = createFileRoute("/_authenticated/archive")({
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
     if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
   },
+  head: () => ({
+    meta: [
+      { title: "Archive — Ai Tasks Solutions" },
+      { name: "description", content: "تصفح أرشيف المهام المغلقة، ابحث وراجع سجل الفريق في Ai Tasks Solutions." },
+      { property: "og:title", content: "Archive — Ai Tasks Solutions" },
+      { property: "og:description", content: "تصفح أرشيف المهام المغلقة، ابحث وراجع سجل الفريق في Ai Tasks Solutions." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/archive" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ArchivePage,
 });
 
