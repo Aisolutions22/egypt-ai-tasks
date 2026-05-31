@@ -95,6 +95,17 @@ function SettingsPage() {
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
   }
 
+  async function resetColleaguePw(id: string, full_name: string) {
+    const pw = prompt(`كلمة المرور الجديدة للزميل ${full_name} (8 أحرف على الأقل):`);
+    if (!pw) return;
+    if (pw.length < 8) return toast.error("٨ أحرف على الأقل");
+    try {
+      await resetPw({ data: { profile_id: id, password: pw } });
+      toast.success(`تم تعيين كلمة المرور. شاركها مع ${full_name}: ${pw}`, { duration: 10000 });
+    } catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
+  }
+
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
