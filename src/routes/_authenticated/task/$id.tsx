@@ -97,7 +97,7 @@ function TaskDetail() {
         await supabase.from("notifications").insert(
           admins.map((a) => ({
             recipient_id: a.id, task_id: id, type: "new_message" as const,
-            message: `${me.full_name} أرسل رسالة في: ${task.title}`,
+            message: `${me.full_name} أرسل رسالة في: ${task?.title ?? ""}`,
           })),
         );
       }
