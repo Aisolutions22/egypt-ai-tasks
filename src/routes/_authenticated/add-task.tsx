@@ -119,6 +119,8 @@ function AddTaskPage() {
     } catch { /* silent */ }
 
     setSaving(false);
+    qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+    qc.invalidateQueries({ queryKey: ["tasks"] });
     toast.success("تم إنشاء المهمة ✓");
     navigate({ to: "/dashboard" });
   }
