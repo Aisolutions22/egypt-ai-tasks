@@ -64,9 +64,7 @@ function AuthedLayout() {
         </button>
         <div className="flex items-center gap-2">
           <span className="font-bold">Ai Tasks Solutions</span>
-          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground inline-flex items-center justify-center">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img src={logoUrl} alt="Ai Tasks Solutions" style={{ height: 36 }} className="w-auto object-contain" />
         </div>
       </header>
 
