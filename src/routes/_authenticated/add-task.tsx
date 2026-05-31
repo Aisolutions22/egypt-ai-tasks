@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
@@ -39,6 +39,7 @@ function AddTaskPage() {
   const { data: profiles = [] } = useAllProfiles();
   const employees = profiles.filter((p) => p.role === "employee" || p.role === "admin");
   const sendEmail = useServerFn(sendNewTaskEmail);
+  const qc = useQueryClient();
 
   const { data: settings } = useQuery({
     queryKey: ["app-settings"],
@@ -118,6 +119,8 @@ function AddTaskPage() {
     } catch { /* silent */ }
 
     setSaving(false);
+    qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+    qc.invalidateQueries({ queryKey: ["tasks"] });
     toast.success("تم إنشاء المهمة ✓");
     navigate({ to: "/dashboard" });
   }
