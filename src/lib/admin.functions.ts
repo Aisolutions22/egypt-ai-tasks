@@ -81,3 +81,30 @@ export const deleteColleague = createServerFn({ method: "POST" })
     // profile is cascaded via FK ON DELETE CASCADE on user_id
     return { ok: true };
   });
+
+const ResetPwInput = z.object({
+  profile_id: z.string().uuid(),
+  password: z.string().min(8).max(72),
+});
+
+export const resetColleaguePassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => ResetPwInput.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertRole(context.userId, ["owner", "admin"]);
+    const { data: target, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, user_id, role")
+      .eq("id", data.profile_id)
+      .maybeSingle();
+    if (error || !target) throw new Error("الزميل غير موجود");
+    if (target.role === "owner") throw new Error("لا يمكن تغيير كلمة مرور المالك من هنا");
+
+    const { error: uErr } = await supabaseAdmin.auth.admin.updateUserById(
+      target.user_id,
+      { password: data.password },
+    );
+    if (uErr) throw new Error(uErr.message);
+    return { ok: true };
+  });
+
