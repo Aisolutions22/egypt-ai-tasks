@@ -36,13 +36,17 @@ type TaskRow = {
 function Dashboard() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const isOwner = me?.role === "owner";
+  const canSeeAll = isAdmin || isOwner;
   const qc = useQueryClient();
 
   // Fetch ALL tasks (including closed/archived) so counters reflect everything.
   const { data: allTasksRaw = [], isLoading } = useQuery({
-    queryKey: ["dashboard-tasks", me?.id, isAdmin],
+    queryKey: ["dashboard-tasks", me?.id, canSeeAll],
     enabled: !!me?.id,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
@@ -53,12 +57,12 @@ function Dashboard() {
     },
   });
 
-  // Auto-mark overdue tasks as 'late' on every dashboard load.
+  // Auto-mark overdue tasks as 'late' (admin only — owner is read-only).
   useEffect(() => {
     if (!isAdmin || allTasksRaw.length === 0) return;
     const nowIso = new Date().toISOString();
     const overdue = allTasksRaw.filter(
-      (t) => t.deadline < nowIso && t.status !== "closed" && t.status !== "done" && t.status !== "late",
+      (t) => t.deadline < nowIso && t.is_active && t.status !== "closed" && t.status !== "done" && t.status !== "late",
     );
     if (overdue.length === 0) return;
     (async () => {
@@ -71,13 +75,15 @@ function Dashboard() {
 
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   // Counters per spec
-  const total = allTasksRaw.length;                                         // every task ever
-  const inProgress = allTasksRaw.filter((t) => t.status !== "closed").length; // all non-closed
-  const late = allTasksRaw.filter((t) => t.status === "late").length;
+  const total = allTasksRaw.length;
+  const inProgress = allTasksRaw.filter(
+    (t) => t.is_active && (t.status === "new" || t.status === "inProgress" || t.status === "late"),
+  ).length;
+  const late = allTasksRaw.filter((t) => t.status === "late" && t.is_active).length;
   const done = allTasksRaw.filter((t) => t.status === "closed").length;
 
-  // Dashboard list shows tasks still active (not closed/archived).
-  const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.status !== "closed"), [allTasksRaw]);
+  // Dashboard list shows tasks where is_active = true.
+  const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.is_active), [allTasksRaw]);
 
   const tasks = useMemo(() => {
     if (filter === "all") return activeTasks;
@@ -87,7 +93,7 @@ function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
-      {isAdmin && <HomeMessageBanner />}
+      <HomeMessageBanner />
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
@@ -124,7 +130,7 @@ function Dashboard() {
         </div>
       )}
 
-      {isAdmin ? (
+      {canSeeAll ? (
         <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} />
       ) : (
         <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">

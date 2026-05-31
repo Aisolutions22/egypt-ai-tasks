@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAllProfiles } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { formatArDate } from "@/lib/date-ar";
+import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { Search, ArchiveX } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/archive")({
@@ -38,9 +38,9 @@ function ArchivePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, created_at, deadline, task_assignments(user_id)")
+        .select("id, title, created_at, deadline, closed_by, closed_at, task_assignments(user_id)")
         .eq("status", "closed")
-        .order("created_at", { ascending: false });
+        .order("closed_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
@@ -70,22 +70,30 @@ function ArchivePage() {
         </div>
       ) : (
         <div className="glass rounded-2xl divide-y">
-          {filtered.map((t) => (
-            <Link key={t.id} to="/task/$id" params={{ id: t.id }}
-              className="flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors">
-              <div className="flex -space-x-2 rtl:space-x-reverse">
-                {t.task_assignments?.slice(0, 3).map((a: { user_id: string }) => {
-                  const p = profileById.get(a.user_id);
-                  return p ? <AvatarCircle key={a.user_id} name={p.full_name} color={p.color} size={28} /> : null;
-                })}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold truncate">{t.title}</div>
-                <div className="text-xs text-muted-foreground">{formatArDate(t.created_at)}</div>
-              </div>
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Done</span>
-            </Link>
-          ))}
+          {filtered.map((t) => {
+            const closer = t.closed_by ? profileById.get(t.closed_by) : null;
+            return (
+              <Link key={t.id} to="/task/$id" params={{ id: t.id }}
+                className="flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors">
+                <div className="flex -space-x-2 rtl:space-x-reverse">
+                  {t.task_assignments?.slice(0, 3).map((a: { user_id: string }) => {
+                    const p = profileById.get(a.user_id);
+                    return p ? <AvatarCircle key={a.user_id} name={p.full_name} color={p.color} size={28} /> : null;
+                  })}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{t.title}</div>
+                  <div className="text-xs text-muted-foreground">{formatArDate(t.created_at)}</div>
+                  {t.closed_at && (
+                    <div className="text-[11px] text-muted-foreground mt-0.5">
+                      أُغلق بواسطة {closer?.full_name ?? "—"} في {formatArDateTime(t.closed_at)}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Done</span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

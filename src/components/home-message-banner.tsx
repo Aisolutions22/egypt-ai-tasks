@@ -8,6 +8,7 @@ import { formatArDateTime } from "@/lib/date-ar";
 
 type HM = {
   id: string;
+  title: string | null;
   content: string;
   created_by: string | null;
   expires_at: string;
@@ -39,8 +40,8 @@ export function HomeMessageBanner() {
 
   if (msgs.length === 0) return null;
   const latest = msgs[0];
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
-  const needsClamp = (latest.content?.length ?? 0) > 110 || (latest.content?.match(/\n/g)?.length ?? 0) >= 2;
+  const isAdmin = me?.role === "admin";
+  const needsClamp = (latest.content?.length ?? 0) > 180 || (latest.content?.match(/\n/g)?.length ?? 0) >= 3;
 
   async function dismiss(id: string) {
     await supabase.from("home_messages").update({ is_active: false }).eq("id", id);
@@ -57,8 +58,13 @@ export function HomeMessageBanner() {
           <span className="inline-block px-2.5 py-1 rounded-full bg-white/25 text-xs font-bold mb-2">
             رسالة اليوم
           </span>
+          {latest.title && (
+            <div className="font-bold text-base md:text-lg mb-1" style={{ color: "#fff" }}>
+              {latest.title}
+            </div>
+          )}
           <p
-            className={expanded ? "whitespace-pre-wrap" : "line-clamp-2"}
+            className={expanded ? "whitespace-pre-wrap" : "line-clamp-3"}
             style={{ color: "#fff", fontSize: 14, lineHeight: 1.6 }}
           >
             {latest.content}

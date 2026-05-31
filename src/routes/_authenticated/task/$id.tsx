@@ -34,7 +34,9 @@ function TaskDetail() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
   const profileById = new Map(profiles.map((p) => [p.id, p]));
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const isOwner = me?.role === "owner";
+
 
   const { data: task } = useQuery({
     queryKey: ["task", id],
@@ -115,8 +117,11 @@ function TaskDetail() {
   }
 
   async function markDone() {
+    if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
-    await supabase.from("tasks").update({ status: "closed", is_active: false }).eq("id", id);
+    await supabase.from("tasks")
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString() })
+      .eq("id", id);
     toast.success("تم الإغلاق ✓");
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
@@ -160,6 +165,12 @@ function TaskDetail() {
           </div>
         )}
       </div>
+
+      {closed && task.closed_at && (
+        <div className="glass rounded-2xl p-3 md:p-4 text-sm text-muted-foreground">
+          أُغلق بواسطة {profileById.get(task.closed_by ?? "")?.full_name ?? "—"} في {formatArDateTime(task.closed_at)}
+        </div>
+      )}
 
       {/* Info */}
       <div className="glass rounded-2xl p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -244,8 +255,15 @@ function TaskDetail() {
             )}
             <Textarea
               value={content} onChange={(e) => setContent(e.target.value)}
-              placeholder="اكتب ردك هنا..." rows={3}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void send();
+                }
+              }}
+              placeholder="اكتب ردك هنا... (Enter للإرسال، Shift+Enter لسطر جديد)" rows={3}
             />
+
             {myAssignment && (
               <div>
                 <div className="flex justify-between text-xs mb-1.5">

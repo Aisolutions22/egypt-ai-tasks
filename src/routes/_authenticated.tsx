@@ -22,14 +22,15 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Home;
-  adminOnly?: boolean;
+  adminOnly?: boolean;       // admins only (not owner)
+  adminOrOwner?: boolean;    // both admins and owner
 }
 
 const NAV: NavItem[] = [
   { to: "/dashboard",     label: "لوحة التحكم", icon: Home },
   { to: "/add-task",      label: "إضافة مهمة",  icon: Plus, adminOnly: true },
   { to: "/add-colleague", label: "إضافة زميل",  icon: Users, adminOnly: true },
-  { to: "/archive",       label: "Archive",     icon: Archive, adminOnly: true },
+  { to: "/archive",       label: "Archive",     icon: Archive, adminOrOwner: true },
   { to: "/settings",      label: "الإعدادات",   icon: SettingsIcon },
 ];
 
@@ -42,8 +43,13 @@ function AuthedLayout() {
   // Close drawer on route change
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
-  const items = NAV.filter((n) => !n.adminOnly || isAdmin);
+  const isOwner = me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const items = NAV.filter((n) => {
+    if (n.adminOnly) return isAdmin;
+    if (n.adminOrOwner) return isAdmin || isOwner;
+    return true;
+  });
 
   async function signOut() {
     await supabase.auth.signOut();

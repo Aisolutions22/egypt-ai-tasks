@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/add-task")({
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/login" });
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
-    if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
+    if (!p || p.role !== "admin") throw redirect({ to: "/dashboard" });
   },
   head: () => ({
     meta: [
@@ -95,7 +95,8 @@ function AddTaskPage() {
     if (kind === "home") {
       const exp = new Date(); exp.setDate(exp.getDate() + hmDays);
       await supabase.from("home_messages").insert({
-        content: title.trim(), created_by: me.id, expires_at: exp.toISOString(), is_active: true,
+        title: title.trim(), content: description.trim(),
+        created_by: me.id, expires_at: exp.toISOString(), is_active: true,
       });
     }
 
