@@ -131,7 +131,7 @@ function Dashboard() {
       )}
 
       {canSeeAll ? (
-        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} isAdmin={isAdmin} />
+        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} />
       ) : (
         <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
           {tasks
