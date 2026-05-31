@@ -217,8 +217,8 @@ function TaskDetail() {
                     </div>
                   )}
                   <div className={cn(
-                    "mt-1 rounded-xl px-3 py-2 text-sm inline-block max-w-full",
-                    isMine ? "bg-primary/10" : "bg-white",
+                    "mt-1 rounded-xl px-3 py-2 text-sm inline-block max-w-full text-foreground",
+                    isMine ? "bg-primary/10" : "bg-accent",
                   )}>
                     {m.content}
                   </div>
