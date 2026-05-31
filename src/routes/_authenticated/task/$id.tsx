@@ -117,8 +117,11 @@ function TaskDetail() {
   }
 
   async function markDone() {
+    if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
-    await supabase.from("tasks").update({ status: "closed", is_active: false }).eq("id", id);
+    await supabase.from("tasks")
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString() })
+      .eq("id", id);
     toast.success("تم الإغلاق ✓");
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
