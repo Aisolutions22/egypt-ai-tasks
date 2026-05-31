@@ -170,11 +170,17 @@ function SettingsPage() {
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
                 </div>
+                {isAdmin && p.role !== "owner" && (
+                  <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
+                    <KeyRound className="h-4 w-4" />
+                  </Button>
+                )}
                 {isOwner && p.role !== "owner" && (
                   <Button size="icon" variant="ghost" onClick={() => removeColleague(p.id, p.full_name)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 )}
+
               </div>
             ))}
           </div>
