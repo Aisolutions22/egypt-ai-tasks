@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles, type Profile } from "@/lib/use-profile";
@@ -7,9 +8,10 @@ import { TaskCard, type TaskCardData } from "@/components/task-card";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2, ChevronDown, Inbox } from "lucide-react";
 import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -36,7 +38,7 @@ function Dashboard() {
   const { data: profiles = [] } = useAllProfiles();
   const isAdmin = me?.role === "admin" || me?.role === "owner";
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const { data: allTasks = [], isLoading } = useQuery({
     queryKey: ["dashboard-tasks", me?.id, isAdmin],
     enabled: !!me?.id,
     queryFn: async () => {
@@ -50,11 +52,18 @@ function Dashboard() {
     },
   });
 
+  const [filter, setFilter] = useState<"all" | "inProgress" | "late" | "done">("all");
+
   const profileById = new Map(profiles.map((p) => [p.id, p]));
-  const total = tasks.length;
-  const inProgress = tasks.filter((t) => t.status === "inProgress").length;
-  const late = tasks.filter((t) => t.status === "late").length;
-  const done = tasks.filter((t) => t.status === "done").length;
+  const total = allTasks.length;
+  const inProgress = allTasks.filter((t) => t.status === "inProgress").length;
+  const late = allTasks.filter((t) => t.status === "late").length;
+  const done = allTasks.filter((t) => t.status === "done").length;
+
+  const tasks = useMemo(() => {
+    if (filter === "all") return allTasks;
+    return allTasks.filter((t) => t.status === filter);
+  }, [allTasks, filter]);
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
@@ -68,27 +77,30 @@ function Dashboard() {
           </p>
         </div>
         {isAdmin && (
-          <Button asChild className="bg-primary text-primary-foreground hover:opacity-90">
+          <Button asChild className="bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
             <Link to="/add-task"><Plus className="h-4 w-4" />مهمة جديدة</Link>
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={ListTodo}    label="إجمالي المهام" value={total}      tint="#2563EB" />
-        <StatCard icon={Clock}       label="قيد التنفيذ"     value={inProgress} tint="#D97706" />
-        <StatCard icon={AlertTriangle} label="متأخرة"        value={late}       tint="#DC2626" />
-        <StatCard icon={CheckCircle2} label="منتهية"         value={done}       tint="#059669" />
+        <StatCard icon={ListTodo}     label="إجمالي المهام" value={total}      tint="#2563EB" active={filter === "all"}        onClick={() => setFilter("all")} />
+        <StatCard icon={Clock}        label="قيد التنفيذ"    value={inProgress} tint="#D97706" active={filter === "inProgress"} onClick={() => setFilter(filter === "inProgress" ? "all" : "inProgress")} />
+        <StatCard icon={AlertTriangle} label="متأخرة"       value={late}       tint="#DC2626" active={filter === "late"}       onClick={() => setFilter(filter === "late" ? "all" : "late")} />
+        <StatCard icon={CheckCircle2} label="منتهية"        value={done}       tint="#059669" active={filter === "done"}       onClick={() => setFilter(filter === "done" ? "all" : "done")} />
       </div>
 
       {isLoading && <div className="text-sm text-muted-foreground">جاري التحميل...</div>}
 
       {!isLoading && tasks.length === 0 && (
         <div className="glass rounded-2xl p-10 text-center">
-          <div className="text-4xl mb-2">✨</div>
-          <p className="text-muted-foreground">
-            لا توجد مهام نشطة حالياً — ابدأ بإضافة مهمة جديد
-          </p>
+          <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-foreground font-medium">لا توجد مهام حالياً</p>
+          {isAdmin && (
+            <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
+              <Link to="/add-task"><Plus className="h-4 w-4" />إضافة مهمة جديدة</Link>
+            </Button>
+          )}
         </div>
       )}
 
@@ -110,17 +122,24 @@ function Dashboard() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, tint }: { icon: typeof ListTodo; label: string; value: number; tint: string }) {
+function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: typeof ListTodo; label: string; value: number; tint: string; active?: boolean; onClick?: () => void }) {
   return (
-    <div className="glass rounded-xl p-4 flex items-center gap-3">
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "glass rounded-xl p-4 flex items-center gap-3 text-right transition-all hover:-translate-y-0.5 active:scale-[0.98] w-full",
+        active && "ring-2 ring-primary",
+      )}
+    >
       <div className="h-11 w-11 rounded-xl flex items-center justify-center" style={{ background: tint + "22", color: tint }}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
         <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-xl font-bold">{toArabicDigits(value)}</div>
+        <div className="text-xl font-bold text-foreground">{toArabicDigits(value)}</div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -128,35 +147,52 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
   tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null;
 }) {
   const employees = profiles.filter((p) => p.role === "employee");
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   if (employees.length === 0) {
     return (
-      <div className="glass rounded-2xl p-10 text-center text-muted-foreground text-sm">
-        لا يوجد موظفون بعد. أضف زميلاً للبدء.
+      <div className="glass rounded-2xl p-10 text-center">
+        <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+        <p className="text-foreground font-medium">لا يوجد زملاء بعد</p>
+        <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
+          <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة زميل</Link>
+        </Button>
       </div>
     );
+  }
+  function toggle(id: string) {
+    setCollapsed((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
   return (
     <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
       {employees.map((emp) => {
         const empTasks = tasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
+        const isCollapsed = collapsed.has(emp.id);
         return (
           <div key={emp.id} className="glass rounded-2xl p-3 space-y-3">
-            <div className="flex items-center gap-3 px-1">
+            <button
+              type="button"
+              onClick={() => toggle(emp.id)}
+              className="w-full flex items-center gap-3 px-1 text-right hover:opacity-80 active:scale-[0.98] transition"
+              aria-expanded={!isCollapsed}
+            >
               <AvatarCircle name={emp.full_name} color={emp.color} />
               <div className="leading-tight flex-1 min-w-0">
-                <div className="font-bold text-sm truncate">{emp.full_name}</div>
+                <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
               </div>
-            </div>
-            <div className="space-y-2">
-              {empTasks.length === 0 && (
-                <div className="text-xs text-muted-foreground px-1">لا مهام</div>
-              )}
-              {empTasks.map((t) => {
-                const a = t.task_assignments.find((x) => x.user_id === emp.id);
-                return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} />;
-              })}
-            </div>
+              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
+            </button>
+            {!isCollapsed && (
+              <div className="space-y-2">
+                {empTasks.length === 0 && (
+                  <div className="text-xs text-muted-foreground px-1">لا مهام</div>
+                )}
+                {empTasks.map((t) => {
+                  const a = t.task_assignments.find((x) => x.user_id === emp.id);
+                  return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} />;
+                })}
+              </div>
+            )}
           </div>
         );
       })}

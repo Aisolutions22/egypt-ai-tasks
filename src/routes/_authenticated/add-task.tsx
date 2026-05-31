@@ -123,67 +123,72 @@ function AddTaskPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-5">
       <h1 className="text-2xl font-bold">إضافة مهمة جديدة</h1>
-      <div className="glass rounded-2xl p-5 space-y-4">
-        <div>
-          <Label>عنوان المهمة</Label>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" maxLength={200} />
-        </div>
-        <div>
-          <Label>تفاصيل المهمة</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" rows={5} />
-        </div>
-        {kind === "task" && (
+      <div className="glass rounded-2xl p-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Left column */}
+        <div className="space-y-4">
           <div>
-            <Label>منسوب إلى</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
-              {employees.map((e) => {
-                const sel = picked.has(e.id);
-                return (
-                  <button key={e.id} type="button" onClick={() => toggle(e.id)}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
-                      sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
-                    )}>
-                    <span className="text-sm">{e.full_name}</span>
-                    <AvatarCircle name={e.full_name} color={e.color} size={26} />
-                  </button>
-                );
-              })}
-            </div>
+            <Label>عنوان المهمة</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" maxLength={200} />
           </div>
-        )}
-
-        <div>
-          <Label>Deadline</Label>
-          <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1.5" dir="ltr" />
+          <div>
+            <Label>تفاصيل المهمة</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" rows={10} />
+          </div>
         </div>
-        <div>
-          <Label>نوع المهمة</Label>
-          <div className="mt-2 flex gap-2">
-            <button type="button" onClick={() => setKind("task")}
-              className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "task" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
-              مهمة عادية
-            </button>
-            <button type="button" onClick={() => setKind("home")}
-              className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "home" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
-              Home Message — إعلان عام
-            </button>
-          </div>
-          {kind === "home" && (
-            <div className="mt-3">
-              <Label>مدة الظهور (أيام)</Label>
-              <Input type="number" min={1} max={7} value={hmDays} onChange={(e) => setHmDays(+e.target.value)}
-                className="mt-1.5 w-32" dir="ltr" />
+        {/* Right column */}
+        <div className="space-y-4">
+          {kind === "task" && (
+            <div>
+              <Label>منسوب إلى</Label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
+                {employees.map((e) => {
+                  const sel = picked.has(e.id);
+                  return (
+                    <button key={e.id} type="button" onClick={() => toggle(e.id)}
+                      className={cn(
+                        "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
+                        sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
+                      )}>
+                      <span className="text-sm">{e.full_name}</span>
+                      <AvatarCircle name={e.full_name} color={e.color} size={26} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
-        </div>
-        <div className="flex justify-end pt-2">
-          <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">
-            {saving ? "جاري الحفظ..." : "إنشاء المهمة"}
-          </Button>
+          <div>
+            <Label>Deadline</Label>
+            <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1.5" dir="ltr" />
+          </div>
+          <div>
+            <Label>نوع المهمة</Label>
+            <div className="mt-2 flex gap-2 flex-wrap">
+              <button type="button" onClick={() => setKind("task")}
+                className={cn("px-4 h-10 rounded-lg border-2 text-sm transition active:scale-95", kind === "task" ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80")}>
+                مهمة عادية
+              </button>
+              <button type="button" onClick={() => setKind("home")}
+                className={cn("px-4 h-10 rounded-lg border-2 text-sm transition active:scale-95", kind === "home" ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80")}>
+                Home Message — إعلان عام
+              </button>
+            </div>
+            {kind === "home" && (
+              <div className="mt-3">
+                <Label>مدة الظهور (أيام)</Label>
+                <Input type="number" min={1} max={7} value={hmDays} onChange={(e) => setHmDays(+e.target.value)}
+                  className="mt-1.5 w-32" dir="ltr" />
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
+              {saving ? "جاري الحفظ..." : "إنشاء المهمة"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
