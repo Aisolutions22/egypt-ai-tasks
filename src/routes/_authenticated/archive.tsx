@@ -50,13 +50,13 @@ function ArchivePage() {
       <h1 className="text-2xl font-bold">Archive</h1>
       <div className="relative">
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="ابحث عن تاسك أو موظف..." className="pr-10" value={q} onChange={(e) => setQ(e.target.value)} />
+        <Input placeholder="ابحث عن مهمة أو موظف..." className="pr-10" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
       {filtered.length === 0 ? (
         <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
           <ArchiveX className="h-10 w-10 mx-auto mb-2 opacity-50" />
-          لا توجد تاسكات مؤرشفة
+          لا توجد مهام مؤرشفة
         </div>
       ) : (
         <div className="glass rounded-2xl divide-y">

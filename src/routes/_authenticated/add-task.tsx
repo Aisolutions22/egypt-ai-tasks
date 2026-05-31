@@ -62,7 +62,7 @@ function AddTaskPage() {
   async function submit() {
     if (!title.trim()) return toast.error("العنوان مطلوب");
     if (!description.trim()) return toast.error("التفاصيل مطلوبة");
-    if (picked.size === 0) return toast.error("اختر موظفاً واحداً على الأقل");
+    if (kind === "task" && picked.size === 0) return toast.error("اختر موظفاً واحداً على الأقل");
     if (!deadline) return toast.error("Deadline مطلوب");
     if (!me) return;
 
@@ -73,10 +73,13 @@ function AddTaskPage() {
       .select("id").single();
     if (error || !t) { setSaving(false); toast.error("فشل الإنشاء"); return; }
 
-    const ids = Array.from(picked);
-    await supabase.from("task_assignments").insert(
-      ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
-    );
+    const ids = kind === "home" ? [] : Array.from(picked);
+    if (ids.length) {
+      await supabase.from("task_assignments").insert(
+        ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
+      );
+    }
+
 
     if (kind === "home") {
       const exp = new Date(); exp.setDate(exp.getDate() + hmDays);
@@ -105,51 +108,54 @@ function AddTaskPage() {
     } catch { /* silent */ }
 
     setSaving(false);
-    toast.success("تم إنشاء التاسك ✓");
+    toast.success("تم إنشاء المهمة ✓");
     navigate({ to: "/dashboard" });
   }
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold">إضافة تاسك جديد</h1>
+      <h1 className="text-2xl font-bold">إضافة مهمة جديدة</h1>
       <div className="glass rounded-2xl p-5 space-y-4">
         <div>
-          <Label>عنوان التاسك</Label>
+          <Label>عنوان المهمة</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" maxLength={200} />
         </div>
         <div>
-          <Label>تفاصيل التاسك</Label>
+          <Label>تفاصيل المهمة</Label>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" rows={5} />
         </div>
-        <div>
-          <Label>منسوب إلى</Label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
-            {employees.map((e) => {
-              const sel = picked.has(e.id);
-              return (
-                <button key={e.id} type="button" onClick={() => toggle(e.id)}
-                  className={cn(
-                    "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
-                    sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
-                  )}>
-                  <span className="text-sm">{e.full_name}</span>
-                  <AvatarCircle name={e.full_name} color={e.color} size={26} />
-                </button>
-              );
-            })}
+        {kind === "task" && (
+          <div>
+            <Label>منسوب إلى</Label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
+              {employees.map((e) => {
+                const sel = picked.has(e.id);
+                return (
+                  <button key={e.id} type="button" onClick={() => toggle(e.id)}
+                    className={cn(
+                      "inline-flex items-center gap-2 rounded-full pl-3 pr-1 py-1 border-2 transition",
+                      sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
+                    )}>
+                    <span className="text-sm">{e.full_name}</span>
+                    <AvatarCircle name={e.full_name} color={e.color} size={26} />
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
+
         <div>
           <Label>Deadline</Label>
           <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1.5" dir="ltr" />
         </div>
         <div>
-          <Label>نوع التاسك</Label>
+          <Label>نوع المهمة</Label>
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => setKind("task")}
               className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "task" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
-              تاسك عادي
+              مهمة عادية
             </button>
             <button type="button" onClick={() => setKind("home")}
               className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "home" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
@@ -166,7 +172,7 @@ function AddTaskPage() {
         </div>
         <div className="flex justify-end pt-2">
           <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">
-            {saving ? "جاري الحفظ..." : "إنشاء التاسك"}
+            {saving ? "جاري الحفظ..." : "إنشاء المهمة"}
           </Button>
         </div>
       </div>

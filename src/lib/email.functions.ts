@@ -30,7 +30,7 @@ export const sendNewTaskEmail = createServerFn({ method: "POST" })
       const body = {
         from: "Ai Tasks Solutions <onboarding@resend.dev>",
         to: [r.email],
-        subject: "تاسك جديد بانتظارك — Ai Tasks Solutions",
+        subject: "مهمة جديدة بانتظارك — Ai Tasks Solutions",
         html: `
 <div dir="rtl" style="font-family:Tajawal,Arial,sans-serif;background:#FFF5F0;padding:24px;color:#1A1A2E">
   <div style="max-width:560px;margin:auto;background:#fff;border-radius:14px;padding:24px;border:1px solid #f0e3da">

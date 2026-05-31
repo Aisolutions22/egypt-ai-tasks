@@ -26,7 +26,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/dashboard",     label: "لوحة التحكم", icon: Home },
-  { to: "/add-task",      label: "إضافة تاسك",  icon: Plus, adminOnly: true },
+  { to: "/add-task",      label: "إضافة مهمة",  icon: Plus, adminOnly: true },
   { to: "/add-colleague", label: "إضافة زميل",  icon: Users, adminOnly: true },
   { to: "/archive",       label: "Archive",     icon: Archive, adminOnly: true },
   { to: "/settings",      label: "الإعدادات",   icon: SettingsIcon },

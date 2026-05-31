@@ -97,7 +97,7 @@ function TaskDetail() {
         await supabase.from("notifications").insert(
           admins.map((a) => ({
             recipient_id: a.id, task_id: id, type: "new_message" as const,
-            message: `${me.full_name} أرسل رسالة في: ${task.title}`,
+            message: `${me.full_name} أرسل رسالة في: ${task?.title ?? ""}`,
           })),
         );
       }
@@ -106,13 +106,14 @@ function TaskDetail() {
   }
 
   async function markDone() {
-    if (!confirm("هل أنت متأكد من إغلاق هذا التاسك؟")) return;
+    if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
     await supabase.from("tasks").update({ status: "closed", is_active: false }).eq("id", id);
     toast.success("تم الإغلاق ✓");
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
   }
   async function markLate() {
+    if (!task) return;
     await supabase.from("tasks").update({ status: "late" }).eq("id", id);
     toast.success("تم تعليمه كمتأخر");
     const assignees = task.task_assignments?.map((a: { user_id: string }) => a.user_id) ?? [];
@@ -120,12 +121,13 @@ function TaskDetail() {
       await supabase.from("notifications").insert(
         assignees.map((uid: string) => ({
           recipient_id: uid, task_id: id, type: "task_late" as const,
-          message: `تم تعليم التاسك "${task.title}" كمتأخر`,
+          message: `تم تعليم المهمة "${task.title}" كمتأخر`,
         })),
       );
     }
     qc.invalidateQueries({ queryKey: ["task", id] });
   }
+
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
