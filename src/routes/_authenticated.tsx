@@ -7,7 +7,7 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { useMyProfile } from "@/lib/use-profile";
 import { cn } from "@/lib/utils";
 import { Home, Plus, Users, Archive, Settings as SettingsIcon, LogOut, Menu, X } from "lucide-react";
-import logoUrl from "@/assets/logo.png";
+
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
