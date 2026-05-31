@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles, type Profile } from "@/lib/use-profile";
 import { HomeMessageBanner } from "@/components/home-message-banner";
@@ -37,33 +37,53 @@ function Dashboard() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
   const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const qc = useQueryClient();
 
-  const { data: allTasks = [], isLoading } = useQuery({
+  // Fetch ALL tasks (including closed/archived) so counters reflect everything.
+  const { data: allTasksRaw = [], isLoading } = useQuery({
     queryKey: ["dashboard-tasks", me?.id, isAdmin],
     enabled: !!me?.id,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
         .select("id, title, status, created_at, deadline, is_active, task_assignments(user_id, completion_percentage)")
-        .eq("is_active", true)
         .order("deadline", { ascending: true });
       if (error) throw error;
       return (data ?? []) as TaskRow[];
     },
   });
 
+  // Auto-mark overdue tasks as 'late' on every dashboard load.
+  useEffect(() => {
+    if (!isAdmin || allTasksRaw.length === 0) return;
+    const nowIso = new Date().toISOString();
+    const overdue = allTasksRaw.filter(
+      (t) => t.deadline < nowIso && t.status !== "closed" && t.status !== "done" && t.status !== "late",
+    );
+    if (overdue.length === 0) return;
+    (async () => {
+      await supabase.from("tasks").update({ status: "late" }).in("id", overdue.map((t) => t.id));
+      qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+    })();
+  }, [allTasksRaw, isAdmin, qc]);
+
   const [filter, setFilter] = useState<"all" | "inProgress" | "late" | "done">("all");
 
   const profileById = new Map(profiles.map((p) => [p.id, p]));
-  const total = allTasks.length;
-  const inProgress = allTasks.filter((t) => t.status === "inProgress").length;
-  const late = allTasks.filter((t) => t.status === "late").length;
-  const done = allTasks.filter((t) => t.status === "done").length;
+  // Counters per spec
+  const total = allTasksRaw.length;                                         // every task ever
+  const inProgress = allTasksRaw.filter((t) => t.status !== "closed").length; // all non-closed
+  const late = allTasksRaw.filter((t) => t.status === "late").length;
+  const done = allTasksRaw.filter((t) => t.status === "closed").length;
+
+  // Dashboard list shows tasks still active (not closed/archived).
+  const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.status !== "closed"), [allTasksRaw]);
 
   const tasks = useMemo(() => {
-    if (filter === "all") return allTasks;
-    return allTasks.filter((t) => t.status === filter);
-  }, [allTasks, filter]);
+    if (filter === "all") return activeTasks;
+    if (filter === "done") return allTasksRaw.filter((t) => t.status === "closed");
+    return activeTasks.filter((t) => t.status === filter);
+  }, [activeTasks, allTasksRaw, filter]);
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
