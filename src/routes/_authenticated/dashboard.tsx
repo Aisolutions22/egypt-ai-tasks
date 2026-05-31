@@ -36,7 +36,9 @@ type TaskRow = {
 function Dashboard() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const isOwner = me?.role === "owner";
+  const canSeeAll = isAdmin || isOwner;
   const qc = useQueryClient();
 
   // Fetch ALL tasks (including closed/archived) so counters reflect everything.
