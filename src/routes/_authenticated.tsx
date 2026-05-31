@@ -80,9 +80,7 @@ function AuthedLayout() {
         {/* Logo */}
         <div className="p-4 flex items-center justify-between gap-3 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow">
-              <Sparkles className="h-5 w-5" />
-            </div>
+            <img src={logoUrl} alt="Ai Tasks Solutions" style={{ height: 36 }} className="w-auto object-contain" />
             <div className="leading-tight">
               <div className="font-bold text-sm">Ai Tasks</div>
               <div className="text-[11px] text-muted-foreground">Solutions</div>
