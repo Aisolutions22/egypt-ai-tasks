@@ -43,8 +43,10 @@ function Dashboard() {
 
   // Fetch ALL tasks (including closed/archived) so counters reflect everything.
   const { data: allTasksRaw = [], isLoading } = useQuery({
-    queryKey: ["dashboard-tasks", me?.id, isAdmin],
+    queryKey: ["dashboard-tasks", me?.id, canSeeAll],
     enabled: !!me?.id,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
