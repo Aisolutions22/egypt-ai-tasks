@@ -33,6 +33,7 @@ function SettingsPage() {
   const { data: profiles = [] } = useAllProfiles();
   const qc = useQueryClient();
   const del = useServerFn(deleteColleague);
+  const resetPw = useServerFn(resetColleaguePassword);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
   const isOwner = me?.role === "owner";
 
