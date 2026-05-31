@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAllProfiles } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { formatArDate } from "@/lib/date-ar";
+import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { Search, ArchiveX } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/archive")({
