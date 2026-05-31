@@ -166,6 +166,12 @@ function TaskDetail() {
         )}
       </div>
 
+      {closed && task.closed_at && (
+        <div className="glass rounded-2xl p-3 md:p-4 text-sm text-muted-foreground">
+          أُغلق بواسطة {profileById.get(task.closed_by ?? "")?.full_name ?? "—"} في {formatArDateTime(task.closed_at)}
+        </div>
+      )}
+
       {/* Info */}
       <div className="glass rounded-2xl p-4 md:p-5 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div>
