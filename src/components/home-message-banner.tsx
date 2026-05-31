@@ -40,8 +40,8 @@ export function HomeMessageBanner() {
 
   if (msgs.length === 0) return null;
   const latest = msgs[0];
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
-  const needsClamp = (latest.content?.length ?? 0) > 110 || (latest.content?.match(/\n/g)?.length ?? 0) >= 2;
+  const isAdmin = me?.role === "admin";
+  const needsClamp = (latest.content?.length ?? 0) > 180 || (latest.content?.match(/\n/g)?.length ?? 0) >= 3;
 
   async function dismiss(id: string) {
     await supabase.from("home_messages").update({ is_active: false }).eq("id", id);
