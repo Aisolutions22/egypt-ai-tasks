@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { deleteColleague } from "@/lib/admin.functions";
+import { deleteColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Trash2, Moon, Sun } from "lucide-react";
+import { Trash2, Moon, Sun, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
