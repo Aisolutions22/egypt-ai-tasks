@@ -44,7 +44,7 @@
   --radius: 0.875rem;
   /* Brand */
   --background: oklch(0.16 0.04 280);                 /* #0F0F1A deep navy */
-  --foreground: oklch(0.18 0.04 270);                 /* #1A1A2E */
+  --foreground: oklch(0.97 0.02 60);                  /* light text on dark bg */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.04 270);
   --popover: oklch(1 0 0);
