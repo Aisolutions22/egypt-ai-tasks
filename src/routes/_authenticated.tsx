@@ -72,7 +72,7 @@ function AuthedLayout() {
       {/* Sidebar (right) */}
       <aside
         className={cn(
-          "fixed top-0 right-0 h-full w-[248px] z-40 glass border-l flex flex-col",
+          "fixed top-0 right-0 h-full w-[248px] z-40 glass border-l flex flex-col text-sidebar-foreground",
           "transition-transform duration-200",
           "md:translate-x-0",
           open ? "translate-x-0" : "translate-x-full md:translate-x-0",
