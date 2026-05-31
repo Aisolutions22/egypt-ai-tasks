@@ -105,20 +105,20 @@ function AddTaskPage() {
     } catch { /* silent */ }
 
     setSaving(false);
-    toast.success("تم إنشاء التاسك ✓");
+    toast.success("تم إنشاء المهمة ✓");
     navigate({ to: "/dashboard" });
   }
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold">إضافة تاسك جديد</h1>
+      <h1 className="text-2xl font-bold">إضافة مهمة جديد</h1>
       <div className="glass rounded-2xl p-5 space-y-4">
         <div>
-          <Label>عنوان التاسك</Label>
+          <Label>عنوان المهمة</Label>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5" maxLength={200} />
         </div>
         <div>
-          <Label>تفاصيل التاسك</Label>
+          <Label>تفاصيل المهمة</Label>
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1.5" rows={5} />
         </div>
         <div>
@@ -145,11 +145,11 @@ function AddTaskPage() {
           <Input type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} className="mt-1.5" dir="ltr" />
         </div>
         <div>
-          <Label>نوع التاسك</Label>
+          <Label>نوع المهمة</Label>
           <div className="mt-2 flex gap-2">
             <button type="button" onClick={() => setKind("task")}
               className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "task" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
-              تاسك عادي
+              مهمة عادية
             </button>
             <button type="button" onClick={() => setKind("home")}
               className={cn("px-4 h-10 rounded-lg border-2 text-sm", kind === "home" ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
@@ -166,7 +166,7 @@ function AddTaskPage() {
         </div>
         <div className="flex justify-end pt-2">
           <Button onClick={submit} disabled={saving} className="bg-primary text-primary-foreground">
-            {saving ? "جاري الحفظ..." : "إنشاء التاسك"}
+            {saving ? "جاري الحفظ..." : "إنشاء المهمة"}
           </Button>
         </div>
       </div>

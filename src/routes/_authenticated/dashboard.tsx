@@ -54,18 +54,18 @@ function Dashboard() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold">لوحة التحكم</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {formatArDate(new Date())} · {toArabicDigits(total)} تاسك نشط
+            {formatArDate(new Date())} · {toArabicDigits(total)} مهمة نشطة
           </p>
         </div>
         {isAdmin && (
           <Button asChild className="bg-primary text-primary-foreground hover:opacity-90">
-            <Link to="/add-task"><Plus className="h-4 w-4" />تاسك جديد</Link>
+            <Link to="/add-task"><Plus className="h-4 w-4" />مهمة جديدة</Link>
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard icon={ListTodo}    label="إجمالي التاسكات" value={total}      tint="#2563EB" />
+        <StatCard icon={ListTodo}    label="إجمالي المهام" value={total}      tint="#2563EB" />
         <StatCard icon={Clock}       label="قيد التنفيذ"     value={inProgress} tint="#D97706" />
         <StatCard icon={AlertTriangle} label="متأخرة"        value={late}       tint="#DC2626" />
         <StatCard icon={CheckCircle2} label="منتهية"         value={done}       tint="#059669" />
@@ -77,7 +77,7 @@ function Dashboard() {
         <div className="glass rounded-2xl p-10 text-center">
           <div className="text-4xl mb-2">✨</div>
           <p className="text-muted-foreground">
-            لا توجد تاسكات نشطة حالياً — ابدأ بإضافة تاسك جديد
+            لا توجد مهام نشطة حالياً — ابدأ بإضافة مهمة جديد
           </p>
         </div>
       )}
@@ -135,12 +135,12 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
               <AvatarCircle name={emp.full_name} color={emp.color} />
               <div className="leading-tight flex-1 min-w-0">
                 <div className="font-bold text-sm truncate">{emp.full_name}</div>
-                <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} تاسك</div>
+                <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
               </div>
             </div>
             <div className="space-y-2">
               {empTasks.length === 0 && (
-                <div className="text-xs text-muted-foreground px-1">لا تاسكات</div>
+                <div className="text-xs text-muted-foreground px-1">لا مهام</div>
               )}
               {empTasks.map((t) => {
                 const a = t.task_assignments.find((x) => x.user_id === emp.id);

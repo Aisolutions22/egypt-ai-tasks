@@ -106,7 +106,7 @@ function TaskDetail() {
   }
 
   async function markDone() {
-    if (!confirm("هل أنت متأكد من إغلاق هذا التاسك؟")) return;
+    if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
     await supabase.from("tasks").update({ status: "closed", is_active: false }).eq("id", id);
     toast.success("تم الإغلاق ✓");
     qc.invalidateQueries({ queryKey: ["task", id] });
@@ -120,7 +120,7 @@ function TaskDetail() {
       await supabase.from("notifications").insert(
         assignees.map((uid: string) => ({
           recipient_id: uid, task_id: id, type: "task_late" as const,
-          message: `تم تعليم التاسك "${task.title}" كمتأخر`,
+          message: `تم تعليم المهمة "${task.title}" كمتأخر`,
         })),
       );
     }
