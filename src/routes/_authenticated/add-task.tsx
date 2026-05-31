@@ -62,7 +62,7 @@ function AddTaskPage() {
   async function submit() {
     if (!title.trim()) return toast.error("العنوان مطلوب");
     if (!description.trim()) return toast.error("التفاصيل مطلوبة");
-    if (picked.size === 0) return toast.error("اختر موظفاً واحداً على الأقل");
+    if (kind === "task" && picked.size === 0) return toast.error("اختر موظفاً واحداً على الأقل");
     if (!deadline) return toast.error("Deadline مطلوب");
     if (!me) return;
 
@@ -73,10 +73,13 @@ function AddTaskPage() {
       .select("id").single();
     if (error || !t) { setSaving(false); toast.error("فشل الإنشاء"); return; }
 
-    const ids = Array.from(picked);
-    await supabase.from("task_assignments").insert(
-      ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
-    );
+    const ids = kind === "home" ? [] : Array.from(picked);
+    if (ids.length) {
+      await supabase.from("task_assignments").insert(
+        ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
+      );
+    }
+
 
     if (kind === "home") {
       const exp = new Date(); exp.setDate(exp.getDate() + hmDays);
