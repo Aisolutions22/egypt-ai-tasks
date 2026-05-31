@@ -114,7 +114,7 @@ function AddTaskPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold">إضافة مهمة جديد</h1>
+      <h1 className="text-2xl font-bold">إضافة مهمة جديدة</h1>
       <div className="glass rounded-2xl p-5 space-y-4">
         <div>
           <Label>عنوان المهمة</Label>
