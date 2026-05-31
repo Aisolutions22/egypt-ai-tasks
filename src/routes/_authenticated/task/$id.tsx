@@ -34,7 +34,9 @@ function TaskDetail() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
   const profileById = new Map(profiles.map((p) => [p.id, p]));
-  const isAdmin = me?.role === "admin" || me?.role === "owner";
+  const isAdmin = me?.role === "admin";
+  const isOwner = me?.role === "owner";
+
 
   const { data: task } = useQuery({
     queryKey: ["task", id],
