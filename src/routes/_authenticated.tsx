@@ -22,7 +22,8 @@ interface NavItem {
   to: string;
   label: string;
   icon: typeof Home;
-  adminOnly?: boolean;
+  adminOnly?: boolean;       // admins only (not owner)
+  adminOrOwner?: boolean;    // both admins and owner
 }
 
 const NAV: NavItem[] = [
