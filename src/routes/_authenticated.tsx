@@ -6,7 +6,8 @@ import { AvatarCircle } from "@/components/avatar-circle";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { useMyProfile } from "@/lib/use-profile";
 import { cn } from "@/lib/utils";
-import { Home, Plus, Users, Archive, Settings as SettingsIcon, LogOut, Menu, X, Sparkles } from "lucide-react";
+import { Home, Plus, Users, Archive, Settings as SettingsIcon, LogOut, Menu, X } from "lucide-react";
+import logoUrl from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -64,9 +65,7 @@ function AuthedLayout() {
         </button>
         <div className="flex items-center gap-2">
           <span className="font-bold">Ai Tasks Solutions</span>
-          <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground inline-flex items-center justify-center">
-            <Sparkles className="h-4 w-4" />
-          </div>
+          <img src={logoUrl} alt="Ai Tasks Solutions" style={{ height: 36 }} className="w-auto object-contain" />
         </div>
       </header>
 
@@ -82,9 +81,7 @@ function AuthedLayout() {
         {/* Logo */}
         <div className="p-4 flex items-center justify-between gap-3 border-b">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shadow">
-              <Sparkles className="h-5 w-5" />
-            </div>
+            <img src={logoUrl} alt="Ai Tasks Solutions" style={{ height: 36 }} className="w-auto object-contain" />
             <div className="leading-tight">
               <div className="font-bold text-sm">Ai Tasks</div>
               <div className="text-[11px] text-muted-foreground">Solutions</div>
