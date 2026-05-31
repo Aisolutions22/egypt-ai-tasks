@@ -44,16 +44,23 @@ function AddColleaguePage() {
   const [color, setColor] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const taken = profiles.map((p) => p.color);
+  const taken = profiles.map((p) => p.color.toLowerCase());
 
   async function submit() {
     if (!name.trim()) return toast.error("الاسم مطلوب");
     if (!email.trim()) return toast.error("البريد مطلوب");
     if (password.length < 8) return toast.error("كلمة المرور ٨ أحرف على الأقل");
-    if (!color) return toast.error("اختر لوناً");
+    // Auto-pick first available color if none selected
+    let finalColor = color;
+    if (!finalColor) {
+      const { COLOR_PALETTE } = await import("@/lib/colors");
+      finalColor = COLOR_PALETTE.find((c) => !taken.includes(c.toLowerCase())) ?? null;
+      if (!finalColor) return toast.error("جميع الألوان مستخدمة، أضف لوناً جديداً");
+    }
+    if (taken.includes(finalColor.toLowerCase())) return toast.error("هذا اللون مستخدم بالفعل");
     setSaving(true);
     try {
-      await create({ data: { full_name: name.trim(), email: email.trim(), password, role, color } });
+      await create({ data: { full_name: name.trim(), email: email.trim(), password, role, color: finalColor } });
       toast.success("تم إنشاء الحساب ✓");
       navigate({ to: "/settings" });
     } catch (e: unknown) {
