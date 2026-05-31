@@ -19,6 +19,16 @@ export const Route = createFileRoute("/_authenticated/add-colleague")({
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
     if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
   },
+  head: () => ({
+    meta: [
+      { title: "إضافة زميل — Ai Tasks Solutions" },
+      { name: "description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
+      { property: "og:title", content: "إضافة زميل — Ai Tasks Solutions" },
+      { property: "og:description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/add-colleague" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: AddColleaguePage,
 });
 

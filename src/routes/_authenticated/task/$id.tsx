@@ -14,6 +14,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
+  head: () => ({
+    meta: [
+      { title: "تفاصيل المهمة — Ai Tasks Solutions" },
+      { name: "description", content: "اعرض تفاصيل المهمة، حالة الإنجاز، المحادثة بين الفريق، والمرفقات في Ai Tasks Solutions." },
+      { property: "og:title", content: "تفاصيل المهمة — Ai Tasks Solutions" },
+      { property: "og:description", content: "اعرض تفاصيل المهمة، حالة الإنجاز، المحادثة بين الفريق، والمرفقات في Ai Tasks Solutions." },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: TaskDetail,
 });
 

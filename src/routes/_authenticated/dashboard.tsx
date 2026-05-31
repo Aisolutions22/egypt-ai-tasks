@@ -12,6 +12,16 @@ import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head: () => ({
+    meta: [
+      { title: "Dashboard — Ai Tasks Solutions" },
+      { name: "description", content: "لوحة التحكم: تابع مهام الفريق، حالة الإنجاز، والمهام المتأخرة في Ai Tasks Solutions." },
+      { property: "og:title", content: "Dashboard — Ai Tasks Solutions" },
+      { property: "og:description", content: "لوحة التحكم: تابع مهام الفريق، حالة الإنجاز، والمهام المتأخرة في Ai Tasks Solutions." },
+      { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/dashboard" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: Dashboard,
 });
 
