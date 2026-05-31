@@ -37,6 +37,7 @@ export type Database = {
           expires_at: string
           id: string
           is_active: boolean
+          title: string | null
         }
         Insert: {
           content: string
@@ -45,6 +46,7 @@ export type Database = {
           expires_at: string
           id?: string
           is_active?: boolean
+          title?: string | null
         }
         Update: {
           content?: string
@@ -53,6 +55,7 @@ export type Database = {
           expires_at?: string
           id?: string
           is_active?: boolean
+          title?: string | null
         }
         Relationships: [
           {
@@ -274,6 +277,8 @@ export type Database = {
       }
       tasks: {
         Row: {
+          closed_at: string | null
+          closed_by: string | null
           created_at: string
           created_by: string | null
           deadline: string
@@ -286,6 +291,8 @@ export type Database = {
           title: string
         }
         Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           deadline: string
@@ -298,6 +305,8 @@ export type Database = {
           title: string
         }
         Update: {
+          closed_at?: string | null
+          closed_by?: string | null
           created_at?: string
           created_by?: string | null
           deadline?: string
