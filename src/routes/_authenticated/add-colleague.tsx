@@ -68,6 +68,7 @@ function AddColleaguePage() {
           <div className="relative mt-1.5">
             <Input type={showPw ? "text" : "password"} dir="ltr" value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="button" onClick={() => setShowPw((v) => !v)}
+              aria-label={showPw ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
               className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground">
               {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>

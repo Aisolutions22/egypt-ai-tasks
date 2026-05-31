@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /add-task
+Disallow: /add-colleague
+Disallow: /archive
+Disallow: /settings
+Disallow: /task/
+
+Sitemap: https://ai-tasks-solutions.lovable.app/sitemap.xml

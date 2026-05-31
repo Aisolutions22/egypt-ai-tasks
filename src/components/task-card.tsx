@@ -28,7 +28,7 @@ export function TaskCard({ task }: { task: TaskCardData }) {
       style={{ borderRight: `3px solid ${task.borderColor}` }}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-bold text-sm leading-snug line-clamp-2 flex-1">{task.title}</h3>
+        <h2 className="font-bold text-sm leading-snug line-clamp-2 flex-1">{task.title}</h2>
         <span
           className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
           style={{ backgroundColor: s.color, color: s.textOn }}

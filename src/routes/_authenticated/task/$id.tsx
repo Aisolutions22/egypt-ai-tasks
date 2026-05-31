@@ -230,7 +230,7 @@ function TaskDetail() {
             {replyTo && (
               <div className="flex items-start gap-2 bg-accent/40 rounded-lg px-3 py-2 text-xs">
                 <div className="flex-1 line-clamp-2 text-muted-foreground">رد على: {replyTo.content}</div>
-                <button onClick={() => setReplyTo(null)}><X className="h-3.5 w-3.5" /></button>
+                <button onClick={() => setReplyTo(null)} aria-label="إلغاء الرد"><X className="h-3.5 w-3.5" /></button>
               </div>
             )}
             <Textarea

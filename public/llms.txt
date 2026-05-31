@@ -1,0 +1,11 @@
+# Ai Tasks Solutions
+
+> نظام إدارة مهام عربي ذكي للفرق — توزيع المهام، متابعة الإنجاز، محادثات داخلية، وأرشيف.
+
+Ai Tasks Solutions is an Arabic-first, RTL task management platform for teams.
+Owners and admins assign tasks to employees with deadlines, track completion in
+real time, broadcast home messages, and archive closed work.
+
+## Pages
+
+- [Login](/login): تسجيل الدخول إلى نظام Ai Tasks Solutions.
