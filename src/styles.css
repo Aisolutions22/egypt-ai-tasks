@@ -43,8 +43,8 @@
 :root {
   --radius: 0.875rem;
   /* Brand */
-  --background: oklch(0.975 0.025 60);                /* #FFF5F0 warm cream */
-  --foreground: oklch(0.18 0.04 270);                 /* #1A1A2E */
+  --background: oklch(0.16 0.04 280);                 /* #0F0F1A deep navy */
+  --foreground: oklch(0.97 0.02 60);                  /* light text on dark bg */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.04 270);
   --popover: oklch(1 0 0);
@@ -120,37 +120,50 @@
   overflow: hidden;
   pointer-events: none;
 }
-.ai-bg-orbs::before,
-.ai-bg-orbs::after,
-.ai-bg-orbs > span {
-  content: "";
+.ai-bg-orbs .orb {
   position: absolute;
-  width: 520px;
-  height: 520px;
+  width: 620px;
+  height: 620px;
   border-radius: 9999px;
-  filter: blur(80px);
-  opacity: 0.35;
-  background: radial-gradient(circle, #FF6B2B 0%, #FF9A5C 60%, transparent 100%);
+  filter: blur(120px);
+  opacity: 0.45;
   will-change: transform;
 }
-.ai-bg-orbs::before { top: -120px; right: -120px; animation: orb-float-a 18s ease-in-out infinite; }
-.ai-bg-orbs::after  { bottom: -160px; left: -160px; animation: orb-float-b 22s ease-in-out infinite;
-  background: radial-gradient(circle, #FF9A5C 0%, #FFB88C 60%, transparent 100%); }
-.ai-bg-orbs > span  { top: 35%; left: 40%; width: 420px; height: 420px;
-  animation: orb-float-c 26s ease-in-out infinite;
-  background: radial-gradient(circle, #FFB88C 0%, #FF6B2B 60%, transparent 100%); opacity: 0.25; }
+.ai-bg-orbs .orb-1 { top: -180px; left: -160px;
+  background: radial-gradient(circle, #7C3AED 0%, transparent 70%);
+  animation: orb-drift-1 18s ease-in-out infinite; }
+.ai-bg-orbs .orb-2 { top: 10%; right: -200px;
+  background: radial-gradient(circle, #2563EB 0%, transparent 70%);
+  animation: orb-drift-2 20s ease-in-out infinite; }
+.ai-bg-orbs .orb-3 { bottom: -200px; left: 20%;
+  background: radial-gradient(circle, #EC4899 0%, transparent 70%);
+  animation: orb-drift-3 17s ease-in-out infinite; }
+.ai-bg-orbs .orb-4 { top: 40%; left: 35%; width: 540px; height: 540px;
+  background: radial-gradient(circle, #FF6B2B 0%, transparent 70%);
+  animation: orb-drift-4 15s ease-in-out infinite; }
+.ai-bg-orbs .orb-5 { bottom: -120px; right: 10%;
+  background: radial-gradient(circle, #10B981 0%, transparent 70%);
+  animation: orb-drift-5 19s ease-in-out infinite; }
 
-@keyframes orb-float-a {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50%      { transform: translate(-40px, 60px) scale(1.1); }
+@keyframes orb-drift-1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(80px, 120px) scale(1.1); }
 }
-@keyframes orb-float-b {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50%      { transform: translate(60px, -40px) scale(1.08); }
+@keyframes orb-drift-2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(-120px, 80px) scale(1.05); }
 }
-@keyframes orb-float-c {
-  0%, 100% { transform: translate(0,0) scale(1); }
-  50%      { transform: translate(30px, -50px) scale(0.95); }
+@keyframes orb-drift-3 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(100px, -100px) scale(1.08); }
+}
+@keyframes orb-drift-4 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(-90px, -70px) scale(0.95); }
+}
+@keyframes orb-drift-5 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(-60px, -110px) scale(1.12); }
 }
 
 /* Glass card */
