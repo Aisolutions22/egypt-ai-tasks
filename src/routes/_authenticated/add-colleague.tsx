@@ -1,6 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAllProfiles } from "@/lib/use-profile";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/_authenticated/add-colleague")({
 
 function AddColleaguePage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: profiles = [] } = useAllProfiles();
   const create = useServerFn(createColleague);
   const [name, setName] = useState("");
@@ -61,6 +63,7 @@ function AddColleaguePage() {
     setSaving(true);
     try {
       await create({ data: { full_name: name.trim(), email: email.trim(), password, role, color: finalColor } });
+      await queryClient.invalidateQueries({ queryKey: ["profiles"] });
       toast.success("تم إنشاء الحساب ✓");
       navigate({ to: "/settings" });
     } catch (e: unknown) {

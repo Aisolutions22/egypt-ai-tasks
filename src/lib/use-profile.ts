@@ -30,7 +30,7 @@ export function useMyProfile() {
 
 export function useAllProfiles() {
   return useQuery({
-    queryKey: ["all-profiles"],
+    queryKey: ["profiles"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -39,6 +39,7 @@ export function useAllProfiles() {
       if (error) throw error;
       return (data ?? []) as Profile[];
     },
-    staleTime: 30_000,
+    staleTime: 10_000,
+    refetchOnWindowFocus: true,
   });
 }
