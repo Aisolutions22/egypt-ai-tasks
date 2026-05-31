@@ -19,6 +19,7 @@ export function HomeMessageBanner() {
   const { data: me } = useMyProfile();
   const qc = useQueryClient();
   const [showAll, setShowAll] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   const { data: msgs = [] } = useQuery({
     queryKey: ["home-messages"],
