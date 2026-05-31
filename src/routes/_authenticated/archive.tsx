@@ -38,9 +38,9 @@ function ArchivePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, created_at, deadline, task_assignments(user_id)")
+        .select("id, title, created_at, deadline, closed_by, closed_at, task_assignments(user_id)")
         .eq("status", "closed")
-        .order("created_at", { ascending: false });
+        .order("closed_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
