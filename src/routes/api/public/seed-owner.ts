@@ -1,15 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { timingSafeEqual } from "crypto";
 
 /**
  * One-shot seed of the initial Owner account.
- * Visit /api/public/seed-owner once after first deploy.
- * Creates admin@aitasks.com / Admin@2024 with role=owner if no owner exists.
+ * Requires ?token=<SEED_OWNER_TOKEN> matching the server-side secret.
  */
 export const Route = createFileRoute("/api/public/seed-owner")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        const expected = process.env.SEED_OWNER_TOKEN;
+        const provided = new URL(request.url).searchParams.get("token") ?? "";
+        if (!expected) {
+          return Response.json({ ok: false, error: "Forbidden" }, { status: 403 });
+        }
+        const a = Buffer.from(provided);
+        const b = Buffer.from(expected);
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          return Response.json({ ok: false, error: "Forbidden" }, { status: 403 });
+        }
+
+
         const url = process.env.SUPABASE_URL;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
         if (!url || !key) {
