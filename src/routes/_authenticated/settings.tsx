@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { deleteColleague, resetColleaguePassword } from "@/lib/admin.functions";
+import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { Trash2, Moon, Sun, KeyRound } from "lucide-react";
+import { UserX, Moon, Sun, KeyRound } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -32,10 +32,10 @@ function SettingsPage() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
   const qc = useQueryClient();
-  const del = useServerFn(deleteColleague);
+  const offboard = useServerFn(offboardColleague);
   const resetPw = useServerFn(resetColleaguePassword);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
-  const isOwner = me?.role === "owner";
+  const isAdminOnly = me?.role === "admin";
 
   const [name, setName] = useState("");
   const [color, setColor] = useState<string | null>(null);
@@ -89,9 +89,9 @@ function SettingsPage() {
     qc.invalidateQueries({ queryKey: ["app-settings"] });
   }
 
-  async function removeColleague(id: string, full_name: string) {
-    if (!confirm(`حذف ${full_name}؟ هذا إجراء نهائي.`)) return;
-    try { await del({ data: { profile_id: id } }); toast.success("تم الحذف"); qc.invalidateQueries(); }
+  async function offboardCol(id: string, full_name: string) {
+    if (!confirm(`إقالة ${full_name}؟ سيُمنع من تسجيل الدخول لكن بياناته ومهامه ستبقى محفوظة.`)) return;
+    try { await offboard({ data: { profile_id: id } }); toast.success("تمت الإقالة"); qc.invalidateQueries(); }
     catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
   }
 
@@ -115,7 +115,7 @@ function SettingsPage() {
         <div><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" /></div>
         <div>
           <Label>اللون</Label>
-          <div className="mt-2"><ColorPicker value={color} onChange={setColor} takenColors={profiles.map((p) => p.color)} allowSelf={me?.color} /></div>
+          <div className="mt-2"><ColorPicker value={color} onChange={setColor} takenColors={profiles.filter((p) => p.is_active).map((p) => p.color)} allowSelf={me?.color} /></div>
         </div>
         <div className="flex justify-end"><Button onClick={saveProfile} className="bg-primary text-primary-foreground">حفظ</Button></div>
       </section>
@@ -161,7 +161,7 @@ function SettingsPage() {
             <Button asChild size="sm" variant="secondary"><a href="/add-colleague">إضافة زميل</a></Button>
           </div>
           <div className="divide-y">
-            {profiles.map((p) => (
+            {profiles.filter((p) => p.is_active).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2">
                 <AvatarCircle name={p.full_name} color={p.color} size={32} />
                 <div className="flex-1 min-w-0">
@@ -170,20 +170,38 @@ function SettingsPage() {
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
                 </div>
-                {isAdmin && p.role !== "owner" && (
+                {isAdminOnly && p.role !== "owner" && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
                     <KeyRound className="h-4 w-4" />
                   </Button>
                 )}
-                {isOwner && p.role !== "owner" && (
-                  <Button size="icon" variant="ghost" onClick={() => removeColleague(p.id, p.full_name)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                {isAdminOnly && p.role !== "owner" && (
+                  <Button size="icon" variant="ghost" onClick={() => offboardCol(p.id, p.full_name)} title="إقالة الزميل">
+                    <UserX className="h-4 w-4 text-destructive" />
                   </Button>
                 )}
 
               </div>
             ))}
           </div>
+          {profiles.some((p) => !p.is_active) && (
+            <details className="pt-2">
+              <summary className="cursor-pointer text-sm font-semibold text-muted-foreground">موظفون سابقون</summary>
+              <div className="divide-y mt-2">
+                {profiles.filter((p) => !p.is_active).map((p) => (
+                  <div key={p.id} className="flex items-center gap-3 py-2 opacity-70">
+                    <AvatarCircle name={p.full_name} color={p.color} size={28} />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold truncate">{p.full_name}</div>
+                    </div>
+                    <span className="text-xs rounded-full bg-accent px-2 py-0.5">
+                      {p.role === "admin" ? "Admin" : "موظف"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </section>
       )}
     </div>
