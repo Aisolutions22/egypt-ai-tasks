@@ -61,24 +61,32 @@ export const createColleague = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const DeleteInput = z.object({ profile_id: z.string().uuid() });
+const OffboardInput = z.object({ profile_id: z.string().uuid() });
 
-export const deleteColleague = createServerFn({ method: "POST" })
+export const offboardColleague = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => DeleteInput.parse(d))
+  .inputValidator((d: unknown) => OffboardInput.parse(d))
   .handler(async ({ data, context }) => {
-    await assertRole(context.userId, ["owner"]); // owner only
+    await assertRole(context.userId, ["admin"]);
     const { data: target, error } = await supabaseAdmin
       .from("profiles")
       .select("id, user_id, role")
       .eq("id", data.profile_id)
       .maybeSingle();
     if (error || !target) throw new Error("الزميل غير موجود");
-    if (target.role === "owner") throw new Error("لا يمكن حذف حساب المالك");
+    if (target.role === "owner") throw new Error("لا يمكن إقالة حساب المالك");
 
-    const { error: dErr } = await supabaseAdmin.auth.admin.deleteUser(target.user_id);
-    if (dErr) throw new Error(dErr.message);
-    // profile is cascaded via FK ON DELETE CASCADE on user_id
+    const { error: bErr } = await supabaseAdmin.auth.admin.updateUserById(
+      target.user_id,
+      { ban_duration: "876600h" },
+    );
+    if (bErr) throw new Error(bErr.message);
+
+    const { error: pErr } = await supabaseAdmin
+      .from("profiles")
+      .update({ is_active: false })
+      .eq("id", data.profile_id);
+    if (pErr) throw new Error(pErr.message);
     return { ok: true };
   });
 
@@ -91,7 +99,7 @@ export const resetColleaguePassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => ResetPwInput.parse(d))
   .handler(async ({ data, context }) => {
-    await assertRole(context.userId, ["owner", "admin"]);
+    await assertRole(context.userId, ["admin"]);
     const { data: target, error } = await supabaseAdmin
       .from("profiles")
       .select("id, user_id, role")

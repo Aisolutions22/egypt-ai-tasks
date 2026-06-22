@@ -8,6 +8,7 @@ export type Profile = {
   role: "owner" | "admin" | "employee";
   color: string;
   created_at: string;
+  is_active: boolean;
 };
 
 export function useMyProfile() {
