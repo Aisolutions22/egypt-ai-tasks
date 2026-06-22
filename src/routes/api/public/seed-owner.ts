@@ -74,9 +74,7 @@ export const Route = createFileRoute("/api/public/seed-owner")({
 
         return Response.json({
           ok: true,
-          email,
-          password,
-          message: "Owner created. You can now log in.",
+          message: "Owner created. Use the configured credentials to log in.",
         });
       },
     },
