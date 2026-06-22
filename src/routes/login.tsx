@@ -2,7 +2,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedBg } from "@/components/animated-bg";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -72,8 +72,8 @@ function LoginPage() {
           </div>
           <div>
             <Label htmlFor="password">كلمة المرور</Label>
-            <Input
-              id="password" type="password" required dir="ltr"
+            <PasswordInput
+              id="password" required
               value={password} onChange={(e) => setPassword(e.target.value)}
               className="mt-1.5"
             />

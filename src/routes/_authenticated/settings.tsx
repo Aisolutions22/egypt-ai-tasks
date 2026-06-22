@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/password-input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -122,9 +122,9 @@ function SettingsPage() {
 
       <section className="glass rounded-2xl p-5 space-y-4">
         <h2 className="font-bold">تغيير كلمة المرور</h2>
-        <Input type="password" placeholder="الحالية (غير مطلوبة هنا)" dir="ltr" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
-        <Input type="password" placeholder="الجديدة" dir="ltr" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
-        <Input type="password" placeholder="تأكيد الجديدة" dir="ltr" value={confPw} onChange={(e) => setConfPw(e.target.value)} />
+        <PasswordInput placeholder="الحالية (غير مطلوبة هنا)" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
+        <PasswordInput placeholder="الجديدة" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
+        <PasswordInput placeholder="تأكيد الجديدة" value={confPw} onChange={(e) => setConfPw(e.target.value)} />
         <div className="flex justify-end"><Button onClick={changePassword} variant="secondary">تغيير</Button></div>
       </section>
 
