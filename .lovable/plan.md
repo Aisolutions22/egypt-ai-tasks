@@ -1,26 +1,30 @@
-## المشكلة
+## Goal
+Prevent anonymous access to `/api/public/seed-owner` by requiring a secret token, and provision that secret.
 
-سجلات المصادقة تُظهر أن كل محاولات تسجيل دخول الموظف ترجع `invalid_credentials` — أي أن البريد/كلمة المرور لا يطابقان ما تم حفظه. الحساب يُنشأ مع `email_confirm: true`، لذا ليست مشكلة تفعيل بريد. السبب الأرجح: نسيان/خطأ في كتابة كلمة المرور أثناء الإنشاء (لا توجد طريقة لاسترجاعها أو إعادة تعيينها حالياً).
+## Changes
 
-## الحل
+### 1. `src/routes/api/public/seed-owner.ts`
+At the very top of the `GET` handler — before reading Supabase env vars or touching the database — add a token check:
 
-إضافة قدرة **إعادة تعيين كلمة مرور الزميل** للأدمن/المالك من صفحة الإعدادات، بحيث يمكن في أي وقت تعيين كلمة مرور جديدة لأي موظف ومشاركتها معه.
+- Parse `token` from the request URL query string (`new URL(request.url).searchParams.get("token")`).
+- Read `process.env.SEED_OWNER_TOKEN`.
+- If the env var is missing, return `403` with `{ ok: false, error: "Forbidden" }` (fail closed — never allow when unconfigured).
+- If the query token is missing or does not exactly match, return `403` with `{ ok: false, error: "Forbidden" }`.
+- Use a length-equal + constant-time compare (Node `crypto.timingSafeEqual` on `Buffer.from(...)`, guarded by equal length) to avoid timing leaks.
+- Update the handler signature to `GET: async ({ request }) => { ... }`.
 
-### التغييرات
+No other logic changes.
 
-1. **server function جديدة** `resetColleaguePassword` في `src/lib/admin.functions.ts`:
-   - مدخلات: `profile_id`, `password` (8 أحرف+)
-   - فحص أن المنفّذ owner/admin
-   - استدعاء `supabaseAdmin.auth.admin.updateUserById(user_id, { password })`
-   - منع تغيير كلمة مرور owner (إلا owner نفسه)
+### 2. Add Lovable Secret `SEED_OWNER_TOKEN`
+Generate a long random value (e.g. 48 bytes hex / base64url) and store it as a runtime secret via the secrets tool so it's available as `process.env.SEED_OWNER_TOKEN` in the server route.
 
-2. **في صفحة الإعدادات** `src/routes/_authenticated/settings.tsx`:
-   - بجانب زر الحذف لكل زميل، إضافة زر 🔑 "إعادة تعيين كلمة المرور"
-   - عند الضغط: نافذة صغيرة (prompt أو dialog) لإدخال كلمة المرور الجديدة
-   - عرض رسالة نجاح + تذكير بمشاركة الكلمة مع الموظف
+### 3. Usage
+After deploy, the endpoint must be called as:
+```
+GET /api/public/seed-owner?token=<SEED_OWNER_TOKEN>
+```
+All other requests get `403`.
 
-3. **تحسين صفحة إضافة زميل**: بعد إنشاء الحساب، عرض نافذة تأكيد تُظهر البريد وكلمة المرور بوضوح مع زر "نسخ" حتى لا تضيع.
-
-### كيفية الاستخدام بعد التطبيق
-
-- إذا لم يستطع الموظف الدخول → افتح الإعدادات → اضغط 🔑 بجانب اسمه → أدخل كلمة مرور جديدة → أعطها للموظف.
+## Notes
+- Endpoint stays under `/api/public/*` (no platform auth), security enforced inside the handler — matches the public-route guidance.
+- Existing "owner already exists" short-circuit remains, so even with the token the endpoint is effectively single-use.
