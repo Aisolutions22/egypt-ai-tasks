@@ -171,7 +171,7 @@ function SettingsPage() {
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
                 </div>
-                {isAdminOnly && p.role !== "owner" && (
+                {isAdminOnly && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
                     <KeyRound className="h-4 w-4" />
                   </Button>
