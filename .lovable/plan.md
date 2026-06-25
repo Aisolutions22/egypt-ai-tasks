@@ -1,30 +1,28 @@
-## Goal
-Prevent anonymous access to `/api/public/seed-owner` by requiring a secret token, and provision that secret.
+## Plan: Lock owner out of chat, fix settings visibility, add password reset exception
 
-## Changes
+### Part 1 — Database migration
+New migration adding:
+- `public.is_admin_only()` SECURITY DEFINER function (returns true only when `role = 'admin'`), with EXECUTE revoked from PUBLIC/anon and granted to authenticated.
+- Drop `tm_select_assigned_or_admin` on `task_messages`; recreate as `tm_select_assigned_or_admin_only` using `is_admin_only() OR is_assigned_to_task(task_id)`.
+- Replace the `task_messages` INSERT policy to use `is_admin_only()` instead of `is_admin_or_owner()`.
+- Leave `tasks` SELECT policy untouched (owner still sees names/status/counts).
 
-### 1. `src/routes/api/public/seed-owner.ts`
-At the very top of the `GET` handler — before reading Supabase env vars or touching the database — add a token check:
+### Part 2 — Route guard
+In `src/routes/_authenticated/task/$id.tsx`, add a `beforeLoad` matching the `add-colleague.tsx` pattern: fetch current user's profile role; if `role === "owner"`, `throw redirect({ to: "/dashboard" })`.
 
-- Parse `token` from the request URL query string (`new URL(request.url).searchParams.get("token")`).
-- Read `process.env.SEED_OWNER_TOKEN`.
-- If the env var is missing, return `403` with `{ ok: false, error: "Forbidden" }` (fail closed — never allow when unconfigured).
-- If the query token is missing or does not exactly match, return `403` with `{ ok: false, error: "Forbidden" }`.
-- Use a length-equal + constant-time compare (Node `crypto.timingSafeEqual` on `Buffer.from(...)`, guarded by equal length) to avoid timing leaks.
-- Update the handler signature to `GET: async ({ request }) => { ... }`.
+### Part 3 — Non-clickable task cards for owner
+- `src/components/task-card.tsx`: add optional `disableLink?: boolean`. When true, wrap content in a `<div>` with the same className/styling as the `<Link>`; otherwise keep the existing `<Link to="/task/$id">`.
+- `src/routes/_authenticated/dashboard.tsx`: derive `isOwner = me?.role === "owner"` and pass `disableLink={isOwner}` to every `<TaskCard />`.
+- `src/routes/_authenticated/archive.tsx`: when viewer role is "owner", render each archived task's name/status/date in a plain `<div>` (same layout) instead of `<Link to="/task/$id">`.
 
-No other logic changes.
+### Part 4 — Settings fixes
+In `src/routes/_authenticated/settings.tsx`:
+- Ensure `isAdminOnly = me?.role === "admin"` exists.
+- Change wrapping condition of "System Settings" and "الموظفون" sections from `{isAdmin && ...}` to `{isAdminOnly && ...}`.
+- Hide the entire "Change Password" section when viewer's own `role === "owner"`.
+- Remove the `p.role !== "owner"` exclusion from the reset-password (KeyRound) button only, so admins can reset the owner's password. Keep that exclusion in place for any other owner-related controls.
 
-### 2. Add Lovable Secret `SEED_OWNER_TOKEN`
-Generate a long random value (e.g. 48 bytes hex / base64url) and store it as a runtime secret via the secrets tool so it's available as `process.env.SEED_OWNER_TOKEN` in the server route.
-
-### 3. Usage
-After deploy, the endpoint must be called as:
-```
-GET /api/public/seed-owner?token=<SEED_OWNER_TOKEN>
-```
-All other requests get `403`.
-
-## Notes
-- Endpoint stays under `/api/public/*` (no platform auth), security enforced inside the handler — matches the public-route guidance.
-- Existing "owner already exists" short-circuit remains, so even with the token the endpoint is effectively single-use.
+### Technical notes
+- No changes to `tasks` policies, `is_admin_or_owner()`, or other call sites of it.
+- No changes to business logic in task messaging beyond the two policy swaps.
+- Route guard uses the existing `supabase` client + `profiles` lookup pattern already in `add-colleague.tsx`, so no new server function is needed.
