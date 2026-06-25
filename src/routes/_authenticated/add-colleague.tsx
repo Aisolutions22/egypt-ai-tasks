@@ -22,9 +22,9 @@ export const Route = createFileRoute("/_authenticated/add-colleague")({
   },
   head: () => ({
     meta: [
-      { title: "إضافة زميل — Ai Tasks Solutions" },
+      { title: "إضافة موظف — Ai Tasks Solutions" },
       { name: "description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
-      { property: "og:title", content: "إضافة زميل — Ai Tasks Solutions" },
+      { property: "og:title", content: "إضافة موظف — Ai Tasks Solutions" },
       { property: "og:description", content: "أنشئ حساب موظف جديد في Ai Tasks Solutions، وحدد الصلاحية واللون التعريفي الخاص به." },
       { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/add-colleague" },
       { name: "robots", content: "noindex" },
@@ -73,7 +73,7 @@ function AddColleaguePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h1 className="text-2xl font-bold">إضافة زميل</h1>
+      <h1 className="text-2xl font-bold">إضافة موظف</h1>
       <div className="glass rounded-2xl p-5 space-y-4">
         <div>
           <Label>الاسم الكامل</Label>
