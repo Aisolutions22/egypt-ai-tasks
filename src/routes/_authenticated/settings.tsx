@@ -19,9 +19,9 @@ export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
     meta: [
       { title: "Settings — Ai Tasks Solutions" },
-      { name: "description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الزملاء في Ai Tasks Solutions." },
+      { name: "description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الموظفين في Ai Tasks Solutions." },
       { property: "og:title", content: "Settings — Ai Tasks Solutions" },
-      { property: "og:description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الزملاء في Ai Tasks Solutions." },
+      { property: "og:description", content: "إدارة ملفك الشخصي، الإعدادات العامة، وإدارة الموظفين في Ai Tasks Solutions." },
       { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/settings" },
       { name: "robots", content: "noindex" },
     ],
@@ -71,7 +71,7 @@ function SettingsPage() {
   async function saveProfile() {
     if (!me || !color) return;
     if (color !== me.color && profiles.some((p) => p.color === color && p.id !== me.id)) {
-      return toast.error("هذا اللون محجوز لزميل آخر");
+      return toast.error("هذا اللون محجوز لموظف آخر");
     }
     const { error } = await supabase.from("profiles").update({ full_name: name.trim(), color }).eq("id", me.id);
     if (error) toast.error(error.message); else { toast.success("تم الحفظ ✓"); qc.invalidateQueries(); }
@@ -97,7 +97,7 @@ function SettingsPage() {
   }
 
   async function resetColleaguePw(id: string, full_name: string) {
-    const pw = prompt(`كلمة المرور الجديدة للزميل ${full_name} (8 أحرف على الأقل):`);
+    const pw = prompt(`كلمة المرور الجديدة للموظف ${full_name} (8 أحرف على الأقل):`);
     if (!pw) return;
     if (pw.length < 8) return toast.error("٨ أحرف على الأقل");
     try {
@@ -140,7 +140,7 @@ function SettingsPage() {
         <Button onClick={toggleDark} variant="outline">{dark ? "تفعيل الفاتح" : "تفعيل الداكن"}</Button>
       </section>
 
-      {isAdmin && (
+      {isAdminOnly && (
         <section className="glass rounded-2xl p-5 space-y-4">
           <h2 className="font-bold">إعدادات النظام</h2>
           <div>
@@ -155,11 +155,11 @@ function SettingsPage() {
         </section>
       )}
 
-      {isAdmin && (
+      {isAdminOnly && (
         <section className="glass rounded-2xl p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-bold">الزملاء</h2>
-            <Button asChild size="sm" variant="secondary"><a href="/add-colleague">إضافة زميل</a></Button>
+            <h2 className="font-bold">الموظفون</h2>
+            <Button asChild size="sm" variant="secondary"><a href="/add-colleague">إضافة موظف</a></Button>
           </div>
           <div className="divide-y">
             {profiles.filter((p) => p.is_active).map((p) => (
