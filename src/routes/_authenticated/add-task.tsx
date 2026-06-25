@@ -147,7 +147,7 @@ function AddTaskPage() {
             <div>
               <Label>منسوب إلى</Label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف زميلاً أولاً.</p>}
+                {employees.length === 0 && <p className="text-sm text-muted-foreground">لا يوجد موظفون. أضف موظفاً أولاً.</p>}
                 {employees.map((e) => {
                   const sel = picked.has(e.id);
                   return (

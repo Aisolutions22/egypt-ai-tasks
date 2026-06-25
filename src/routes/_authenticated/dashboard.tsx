@@ -178,9 +178,9 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
     return (
       <div className="glass rounded-2xl p-10 text-center">
         <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-foreground font-medium">لا يوجد زملاء بعد</p>
+        <p className="text-foreground font-medium">لا يوجد موظفون بعد</p>
         <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
-          <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة زميل</Link>
+          <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة موظف</Link>
         </Button>
       </div>
     );

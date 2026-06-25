@@ -38,7 +38,7 @@ export const createColleague = createServerFn({ method: "POST" })
       .select("id")
       .ilike("color", data.color)
       .limit(1);
-    if (taken && taken.length > 0) throw new Error("هذا اللون محجوز لزميل آخر");
+    if (taken && taken.length > 0) throw new Error("هذا اللون محجوز لموظف آخر");
 
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
@@ -73,7 +73,7 @@ export const offboardColleague = createServerFn({ method: "POST" })
       .select("id, user_id, role")
       .eq("id", data.profile_id)
       .maybeSingle();
-    if (error || !target) throw new Error("الزميل غير موجود");
+    if (error || !target) throw new Error("الموظف غير موجود");
     if (target.role === "owner") throw new Error("لا يمكن إقالة حساب المالك");
 
     const { error: bErr } = await supabaseAdmin.auth.admin.updateUserById(
@@ -105,7 +105,7 @@ export const resetColleaguePassword = createServerFn({ method: "POST" })
       .select("id, user_id, role")
       .eq("id", data.profile_id)
       .maybeSingle();
-    if (error || !target) throw new Error("الزميل غير موجود");
+    if (error || !target) throw new Error("الموظف غير موجود");
     if (target.role === "owner") throw new Error("لا يمكن تغيير كلمة مرور المالك من هنا");
 
     const { error: uErr } = await supabaseAdmin.auth.admin.updateUserById(
