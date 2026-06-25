@@ -131,7 +131,7 @@ function Dashboard() {
       )}
 
       {canSeeAll ? (
-        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} />
+        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
       ) : (
         <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
           {tasks
@@ -139,7 +139,7 @@ function Dashboard() {
             .map((t) => {
               const my = t.task_assignments.find((a) => a.user_id === me?.id);
               return (
-                <TaskCard key={t.id} task={toCard(t, me!.color, my?.completion_percentage)} />
+                <TaskCard key={t.id} task={toCard(t, me!.color, my?.completion_percentage)} disableLink={isOwner} />
               );
             })}
         </div>
@@ -169,8 +169,8 @@ function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: t
   );
 }
 
-function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
-  tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null;
+function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }: {
+  tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
 }) {
   const employees = profiles.filter((p) => p.role === "employee");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -215,7 +215,7 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId }: {
                 )}
                 {empTasks.map((t) => {
                   const a = t.task_assignments.find((x) => x.user_id === emp.id);
-                  return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} />;
+                  return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} disableLink={disableLink} />;
                 })}
               </div>
             )}

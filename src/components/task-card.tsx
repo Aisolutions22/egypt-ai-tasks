@@ -14,19 +14,17 @@ export interface TaskCardData {
   percentage?: number;
 }
 
-export function TaskCard({ task }: { task: TaskCardData }) {
+export function TaskCard({ task, disableLink }: { task: TaskCardData; disableLink?: boolean }) {
   const late = task.status === "late" || (isLateFn(task.deadline) && task.status !== "closed" && task.status !== "done");
   const s = STATUS_META[task.status];
-  return (
-    <Link
-      to="/task/$id"
-      params={{ id: task.id }}
-      className={cn(
-        "block glass rounded-xl p-4 hover:shadow-md transition-all hover:-translate-y-0.5",
-        late && "late-pulse",
-      )}
-      style={{ borderRight: `3px solid ${task.borderColor}` }}
-    >
+  const className = cn(
+    "block glass rounded-xl p-4 transition-all",
+    !disableLink && "hover:shadow-md hover:-translate-y-0.5",
+    late && "late-pulse",
+  );
+  const style = { borderRight: `3px solid ${task.borderColor}` };
+  const inner = (
+    <>
       <div className="flex items-start justify-between gap-2">
         <h2 className="font-bold text-sm leading-snug line-clamp-2 flex-1">{task.title}</h2>
         <span
@@ -51,6 +49,14 @@ export function TaskCard({ task }: { task: TaskCardData }) {
           <Progress value={task.percentage} className="h-1.5" />
         </div>
       )}
+    </>
+  );
+  if (disableLink) {
+    return <div className={className} style={style}>{inner}</div>;
+  }
+  return (
+    <Link to="/task/$id" params={{ id: task.id }} className={className} style={style}>
+      {inner}
     </Link>
   );
 }

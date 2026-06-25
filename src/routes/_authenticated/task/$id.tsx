@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) throw redirect({ to: "/login" });
+    const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
+    if (p?.role === "owner") throw redirect({ to: "/dashboard" });
+  },
   head: () => ({
     meta: [
       { title: "تفاصيل المهمة — Ai Tasks Solutions" },
