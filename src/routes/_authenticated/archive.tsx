@@ -2,7 +2,7 @@ import { createFileRoute, redirect, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAllProfiles } from "@/lib/use-profile";
+import { useAllProfiles, useMyProfile } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
@@ -30,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/archive")({
 
 function ArchivePage() {
   const { data: profiles = [] } = useAllProfiles();
+  const { data: me } = useMyProfile();
+  const isOwner = me?.role === "owner";
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const [q, setQ] = useState("");
 
@@ -72,9 +74,9 @@ function ArchivePage() {
         <div className="glass rounded-2xl divide-y">
           {filtered.map((t) => {
             const closer = t.closed_by ? profileById.get(t.closed_by) : null;
-            return (
-              <Link key={t.id} to="/task/$id" params={{ id: t.id }}
-                className="flex items-center gap-3 p-3 hover:bg-accent/50 transition-colors">
+            const rowClass = "flex items-center gap-3 p-3 transition-colors";
+            const inner = (
+              <>
                 <div className="flex -space-x-2 rtl:space-x-reverse">
                   {t.task_assignments?.slice(0, 3).map((a: { user_id: string }) => {
                     const p = profileById.get(a.user_id);
@@ -91,6 +93,13 @@ function ArchivePage() {
                   )}
                 </div>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Done</span>
+              </>
+            );
+            return isOwner ? (
+              <div key={t.id} className={rowClass}>{inner}</div>
+            ) : (
+              <Link key={t.id} to="/task/$id" params={{ id: t.id }} className={rowClass + " hover:bg-accent/50"}>
+                {inner}
               </Link>
             );
           })}
