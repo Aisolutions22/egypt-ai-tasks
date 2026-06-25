@@ -121,13 +121,15 @@ function SettingsPage() {
         <div className="flex justify-end"><Button onClick={saveProfile} className="bg-primary text-primary-foreground">حفظ</Button></div>
       </section>
 
-      <section className="glass rounded-2xl p-5 space-y-4">
-        <h2 className="font-bold">تغيير كلمة المرور</h2>
-        <PasswordInput placeholder="الحالية (غير مطلوبة هنا)" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
-        <PasswordInput placeholder="الجديدة" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
-        <PasswordInput placeholder="تأكيد الجديدة" value={confPw} onChange={(e) => setConfPw(e.target.value)} />
-        <div className="flex justify-end"><Button onClick={changePassword} variant="secondary">تغيير</Button></div>
-      </section>
+      {me?.role !== "owner" && (
+        <section className="glass rounded-2xl p-5 space-y-4">
+          <h2 className="font-bold">تغيير كلمة المرور</h2>
+          <PasswordInput placeholder="الحالية (غير مطلوبة هنا)" value={curPw} onChange={(e) => setCurPw(e.target.value)} />
+          <PasswordInput placeholder="الجديدة" value={newPw} onChange={(e) => setNewPw(e.target.value)} />
+          <PasswordInput placeholder="تأكيد الجديدة" value={confPw} onChange={(e) => setConfPw(e.target.value)} />
+          <div className="flex justify-end"><Button onClick={changePassword} variant="secondary">تغيير</Button></div>
+        </section>
+      )}
 
       <section className="glass rounded-2xl p-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
