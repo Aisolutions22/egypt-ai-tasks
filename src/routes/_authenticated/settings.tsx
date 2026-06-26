@@ -45,6 +45,44 @@ function SettingsPage() {
   const [newPw, setNewPw] = useState("");
   const [confPw, setConfPw] = useState("");
   const [dark, setDark] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !me) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error("الصورة كبيرة جداً، الحد ٢ ميجا");
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("غير مسجل دخول");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", me.id);
+      if (updErr) throw updErr;
+      toast.success("تم تحديث الصورة");
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "فشل الرفع");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAvatar() {
+    if (!me) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", me.id);
+    if (error) return toast.error(error.message);
+    toast.success("تمت الإزالة");
+    qc.invalidateQueries({ queryKey: ["my-profile"] });
+    qc.invalidateQueries({ queryKey: ["profiles"] });
+  }
 
   useEffect(() => {
     if (me) { setName(me.full_name); setColor(me.color); }
