@@ -128,7 +128,7 @@ function AuthedLayout() {
         <div className="border-t p-3 space-y-2">
           {me && (
             <div className="flex items-center gap-3 px-2">
-              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={40} />
+              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={44} />
               <div className="leading-tight min-w-0">
                 <div className="font-semibold text-sm truncate">{me.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">
