@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import Cropper, { type Area } from "react-easy-crop";
 import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { UserX, Moon, Sun, KeyRound, Camera } from "lucide-react";
