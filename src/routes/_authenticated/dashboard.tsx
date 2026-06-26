@@ -9,6 +9,7 @@ import { AvatarCircle } from "@/components/avatar-circle";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2, ChevronDown, Inbox } from "lucide-react";
+import { TaskPieChart } from "@/components/task-pie-chart";
 import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
