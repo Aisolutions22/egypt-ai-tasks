@@ -7,7 +7,7 @@ import { AvatarCircle } from "@/components/avatar-circle";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
-import { formatArDate, formatArDateTime, formatArTime } from "@/lib/date-ar";
+import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -183,7 +183,7 @@ function TaskDetail() {
         </div>
         <div>
           <div className="text-muted-foreground text-xs mb-1.5">التواريخ</div>
-          <div>تاريخ الإنشاء: {formatArDate(task.created_at)}</div>
+          <div>تاريخ الإنشاء: {formatArDateTime(task.created_at)}</div>
           <div className="text-warning">Deadline: {formatArDate(task.deadline)}</div>
         </div>
         {task.description && (
@@ -210,7 +210,7 @@ function TaskDetail() {
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-sm" style={{ color: sender?.color }}>{sender?.full_name}</span>
                     <span className="text-[11px] text-muted-foreground">
-                      {formatArDateTime(m.created_at)} · {formatArTime(m.created_at)}
+                      {formatArDateTime(m.created_at)}
                     </span>
                   </div>
                   {replied && (
