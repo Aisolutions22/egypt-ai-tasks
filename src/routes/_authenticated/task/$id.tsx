@@ -210,7 +210,7 @@ function TaskDetail() {
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-sm" style={{ color: sender?.color }}>{sender?.full_name}</span>
                     <span className="text-[11px] text-muted-foreground">
-                      {formatArDateTime(m.created_at)} · {formatArTime(m.created_at)}
+                      {formatArDateTime(m.created_at)}
                     </span>
                   </div>
                   {replied && (
