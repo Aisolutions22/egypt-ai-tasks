@@ -7,7 +7,7 @@ import { AvatarCircle } from "@/components/avatar-circle";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
-import { formatArDate, formatArDateTime, formatArTime } from "@/lib/date-ar";
+import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
