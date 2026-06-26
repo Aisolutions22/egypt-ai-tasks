@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ColorPicker } from "@/components/color-picker";
 import { createColleague } from "@/lib/admin.functions";
+import { useMyProfile } from "@/lib/use-profile";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,8 @@ function AddColleaguePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profiles = [] } = useAllProfiles();
+  const { data: me } = useMyProfile();
+  const isOwner = me?.role === "owner";
   const create = useServerFn(createColleague);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -97,7 +100,9 @@ function AddColleaguePage() {
         <div>
           <Label>الصلاحية</Label>
           <div className="mt-2 flex gap-2">
-            {(["owner", "admin", "employee"] as const).map((r) => (
+            {(["owner", "admin", "employee"] as const)
+              .filter((r) => r !== "owner" || isOwner)
+              .map((r) => (
               <button key={r} type="button" onClick={() => setRole(r)}
                 className={cn("px-4 h-10 rounded-full border-2 text-sm",
                   role === r ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>

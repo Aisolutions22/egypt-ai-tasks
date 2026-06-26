@@ -41,8 +41,14 @@ export const Route = createFileRoute("/api/public/seed-owner")({
           return Response.json({ ok: true, message: "Owner already exists." });
         }
 
-        const email = "admin@aitasks.com";
-        const password = "Admin@2024";
+        const email = process.env.SEED_OWNER_EMAIL;
+        const password = process.env.SEED_OWNER_PASSWORD;
+        if (!email || !password) {
+          return Response.json(
+            { ok: false, error: "SEED_OWNER_EMAIL and SEED_OWNER_PASSWORD must be configured" },
+            { status: 500 },
+          );
+        }
 
         // Try to find user; otherwise create
         let userId: string | null = null;

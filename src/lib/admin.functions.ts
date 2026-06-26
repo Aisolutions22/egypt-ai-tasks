@@ -30,7 +30,10 @@ export const createColleague = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CreateColleagueInput.parse(d))
   .handler(async ({ data, context }) => {
-    await assertRole(context.userId, ["owner", "admin"]);
+    const callerRole = await assertRole(context.userId, ["owner", "admin"]);
+    if (data.role === "owner" && callerRole !== "owner") {
+      throw new Error("لا يمكن لمشرف إنشاء حساب مالك");
+    }
 
     // Color uniqueness
     const { data: taken } = await supabaseAdmin
@@ -106,6 +109,8 @@ export const resetColleaguePassword = createServerFn({ method: "POST" })
       .eq("id", data.profile_id)
       .maybeSingle();
     if (error || !target) throw new Error("الموظف غير موجود");
+    if (target.role === "owner") throw new Error("لا يمكن إعادة تعيين كلمة مرور المالك");
+
     
 
     const { error: uErr } = await supabaseAdmin.auth.admin.updateUserById(
