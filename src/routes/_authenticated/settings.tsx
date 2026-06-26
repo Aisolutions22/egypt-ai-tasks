@@ -318,6 +318,37 @@ function SettingsPage() {
           )}
         </section>
       )}
+
+      <Dialog open={!!cropSrc} onOpenChange={(o) => { if (!o && !uploading) setCropSrc(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>اقتصاص الصورة</DialogTitle>
+          </DialogHeader>
+          <div className="relative w-full h-72 bg-muted rounded-lg overflow-hidden">
+            {cropSrc && (
+              <Cropper
+                image={cropSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+          <div>
+            <Label className="text-xs">التكبير</Label>
+            <Slider min={1} max={3} step={0.01} value={[zoom]} onValueChange={(v) => setZoom(v[0])} className="mt-2" />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setCropSrc(null)} disabled={uploading}>إلغاء</Button>
+            <Button onClick={saveCroppedAvatar} disabled={uploading} className="bg-primary text-primary-foreground">حفظ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
