@@ -290,6 +290,9 @@ function SettingsPage() {
                   <div className="text-xs text-muted-foreground">
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
+                  {isAdminOnly && p.email && (
+                    <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{p.email}</div>
+                  )}
                 </div>
                 {isAdminOnly && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
