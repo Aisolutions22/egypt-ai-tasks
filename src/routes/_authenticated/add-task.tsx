@@ -79,25 +79,32 @@ function AddTaskPage() {
 
     setSaving(true);
     const deadlineIso = new Date(deadline).toISOString();
+
+    if (kind === "home") {
+      const exp = new Date(); exp.setDate(exp.getDate() + hmDays);
+      const { error: hmErr } = await supabase.from("home_messages").insert({
+        title: title.trim(), content: description.trim(),
+        created_by: me.id, expires_at: exp.toISOString(), is_active: true,
+      });
+      if (hmErr) { setSaving(false); toast.error("فشل الإنشاء"); return; }
+      setSaving(false);
+      qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("تم النشر ✓");
+      navigate({ to: "/dashboard" });
+      return;
+    }
+
     const { data: t, error } = await supabase.from("tasks")
       .insert({ title: title.trim(), description: description.trim(), deadline: deadlineIso, created_by: me.id, status: "new", is_active: true })
       .select("id").single();
     if (error || !t) { setSaving(false); toast.error("فشل الإنشاء"); return; }
 
-    const ids = kind === "home" ? [] : Array.from(picked);
+    const ids = Array.from(picked);
     if (ids.length) {
       await supabase.from("task_assignments").insert(
         ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
       );
-    }
-
-
-    if (kind === "home") {
-      const exp = new Date(); exp.setDate(exp.getDate() + hmDays);
-      await supabase.from("home_messages").insert({
-        title: title.trim(), content: description.trim(),
-        created_by: me.id, expires_at: exp.toISOString(), is_active: true,
-      });
     }
 
     // Notifications + email
