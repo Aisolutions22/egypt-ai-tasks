@@ -9,6 +9,7 @@ export type Profile = {
   color: string;
   created_at: string;
   is_active: boolean;
+  avatar_url: string | null;
 };
 
 export function useMyProfile() {

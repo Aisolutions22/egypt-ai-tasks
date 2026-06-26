@@ -13,7 +13,8 @@ import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { UserX, Moon, Sun, KeyRound } from "lucide-react";
+import { UserX, Moon, Sun, KeyRound, Camera } from "lucide-react";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -44,6 +45,44 @@ function SettingsPage() {
   const [newPw, setNewPw] = useState("");
   const [confPw, setConfPw] = useState("");
   const [dark, setDark] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !me) return;
+    if (file.size > 2 * 1024 * 1024) return toast.error("الصورة كبيرة جداً، الحد ٢ ميجا");
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("غير مسجل دخول");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${user.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", me.id);
+      if (updErr) throw updErr;
+      toast.success("تم تحديث الصورة");
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.invalidateQueries({ queryKey: ["profiles"] });
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "فشل الرفع");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAvatar() {
+    if (!me) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: null }).eq("id", me.id);
+    if (error) return toast.error(error.message);
+    toast.success("تمت الإزالة");
+    qc.invalidateQueries({ queryKey: ["my-profile"] });
+    qc.invalidateQueries({ queryKey: ["profiles"] });
+  }
 
   useEffect(() => {
     if (me) { setName(me.full_name); setColor(me.color); }
@@ -113,6 +152,34 @@ function SettingsPage() {
 
       <section className="glass rounded-2xl p-5 space-y-4">
         <h2 className="font-bold">حسابي</h2>
+        {me && (
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={80} />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 left-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background disabled:opacity-50"
+                aria-label="تغيير الصورة"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onPickAvatar}
+              />
+            </div>
+            {me.avatar_url && (
+              <button type="button" onClick={removeAvatar} className="text-xs text-muted-foreground hover:text-destructive underline">
+                إزالة الصورة
+              </button>
+            )}
+          </div>
+        )}
         <div><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" /></div>
         <div>
           <Label>اللون</Label>
@@ -166,7 +233,7 @@ function SettingsPage() {
           <div className="divide-y">
             {profiles.filter((p) => p.is_active).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2">
-                <AvatarCircle name={p.full_name} color={p.color} size={32} />
+                <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{p.full_name}</div>
                   <div className="text-xs text-muted-foreground">
@@ -193,7 +260,7 @@ function SettingsPage() {
               <div className="divide-y mt-2">
                 {profiles.filter((p) => !p.is_active).map((p) => (
                   <div key={p.id} className="flex items-center gap-3 py-2 opacity-70">
-                    <AvatarCircle name={p.full_name} color={p.color} size={28} />
+                    <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={32} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.full_name}</div>
                     </div>
