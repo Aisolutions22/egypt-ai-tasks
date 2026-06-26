@@ -13,7 +13,7 @@ import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import Cropper, { type Area } from "react-easy-crop";
-import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
+import { offboardColleague, resetColleaguePassword, backfillProfileEmails } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { UserX, Moon, Sun, KeyRound, Camera } from "lucide-react";
 import { useRef } from "react";
@@ -38,8 +38,15 @@ function SettingsPage() {
   const qc = useQueryClient();
   const offboard = useServerFn(offboardColleague);
   const resetPw = useServerFn(resetColleaguePassword);
+  const backfillEmails = useServerFn(backfillProfileEmails);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
   const isAdminOnly = me?.role === "admin";
+
+  useEffect(() => {
+    if (isAdminOnly) {
+      backfillEmails().catch(() => {});
+    }
+  }, [isAdminOnly]);
 
   const [name, setName] = useState("");
   const [color, setColor] = useState<string | null>(null);
@@ -283,6 +290,9 @@ function SettingsPage() {
                   <div className="text-xs text-muted-foreground">
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
+                  {isAdminOnly && p.email && (
+                    <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{p.email}</div>
+                  )}
                 </div>
                 {isAdminOnly && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">

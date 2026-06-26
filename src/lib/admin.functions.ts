@@ -55,6 +55,7 @@ export const createColleague = createServerFn({ method: "POST" })
       full_name: data.full_name,
       role: data.role,
       color: data.color,
+      email: data.email,
     });
     if (pErr) {
       // rollback auth user
@@ -120,4 +121,36 @@ export const resetColleaguePassword = createServerFn({ method: "POST" })
     if (uErr) throw new Error(uErr.message);
     return { ok: true };
   });
+
+export const backfillProfileEmails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertRole(context.userId, ["admin"]);
+    const { data: missing, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, user_id")
+      .is("email", null);
+    if (error) throw new Error(error.message);
+    if (!missing || missing.length === 0) return { ok: true, updated: 0 };
+
+    const { data: list, error: lErr } = await supabaseAdmin.auth.admin.listUsers();
+    if (lErr) throw new Error(lErr.message);
+    const emailByUserId = new Map<string, string>();
+    for (const u of list.users) {
+      if (u.email) emailByUserId.set(u.id, u.email);
+    }
+
+    let updated = 0;
+    for (const p of missing) {
+      const email = emailByUserId.get(p.user_id);
+      if (!email) continue;
+      const { error: uErr } = await supabaseAdmin
+        .from("profiles")
+        .update({ email })
+        .eq("id", p.id);
+      if (!uErr) updated++;
+    }
+    return { ok: true, updated };
+  });
+
 
