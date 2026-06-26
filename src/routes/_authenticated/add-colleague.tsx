@@ -100,7 +100,9 @@ function AddColleaguePage() {
         <div>
           <Label>الصلاحية</Label>
           <div className="mt-2 flex gap-2">
-            {(["owner", "admin", "employee"] as const).map((r) => (
+            {(["owner", "admin", "employee"] as const)
+              .filter((r) => r !== "owner" || isOwner)
+              .map((r) => (
               <button key={r} type="button" onClick={() => setRole(r)}
                 className={cn("px-4 h-10 rounded-full border-2 text-sm",
                   role === r ? "border-primary bg-primary/10" : "border-transparent bg-accent")}>
