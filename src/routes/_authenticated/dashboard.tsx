@@ -118,6 +118,13 @@ function Dashboard() {
         <StatCard icon={CheckCircle2} label="منتهية"        value={done}       tint="#059669" active={filter === "done"}       onClick={() => setFilter(filter === "done" ? "all" : "done")} />
       </div>
 
+      {canSeeAll && (
+        <div className="glass rounded-2xl p-5">
+          <h2 className="text-lg font-bold mb-3">نظرة عامة</h2>
+          <TaskPieChart done={done} inProgress={pieInProgress} late={late} size={120} showLegend />
+        </div>
+      )}
+
       {isLoading && <div className="text-sm text-muted-foreground">جاري التحميل...</div>}
 
       {!isLoading && tasks.length === 0 && (
@@ -133,15 +140,9 @@ function Dashboard() {
       )}
 
       {canSeeAll ? (
-        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
+        <EmployeeGrid tasks={tasks} allTasks={allTasksRaw} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
       ) : (
-        <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
-          {tasks
-            .filter((t) => t.task_assignments.some((a) => a.user_id === me?.id))
-            .map((t) => (
-              <TaskCard key={t.id} task={toCard(t, me!.color)} disableLink={isOwner} />
-            ))}
-        </div>
+        <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me} isOwner={isOwner} />
       )}
     </div>
   );
