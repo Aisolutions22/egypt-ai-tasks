@@ -44,7 +44,9 @@ function SettingsPage() {
 
   useEffect(() => {
     if (isAdminOnly) {
-      backfillEmails().catch(() => {});
+      backfillEmails()
+        .then(() => qc.invalidateQueries({ queryKey: ["profiles"] }))
+        .catch(() => {});
     }
   }, [isAdminOnly]);
 
