@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import Cropper, { type Area } from "react-easy-crop";
 import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { UserX, Moon, Sun, KeyRound, Camera } from "lucide-react";
@@ -47,50 +49,61 @@ function SettingsPage() {
   const [dark, setDark] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedPixels, setCroppedPixels] = useState<Area | null>(null);
 
-  async function resizeImage(file: File): Promise<Blob> {
-    const dataUrl: string = await new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = () => reject(new Error("فشل قراءة الملف"));
-      r.readAsDataURL(file);
-    });
+  const onCropComplete = useCallback((_: Area, pixels: Area) => {
+    setCroppedPixels(pixels);
+  }, []);
+
+  async function getCroppedBlob(src: string, area: Area): Promise<Blob> {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
       const i = new Image();
       i.onload = () => resolve(i);
       i.onerror = () => reject(new Error("فشل تحميل الصورة"));
-      i.src = dataUrl;
+      i.src = src;
     });
-    const TARGET = 400;
-    const side = Math.min(img.width, img.height);
-    const sx = (img.width - side) / 2;
-    const sy = (img.height - side) / 2;
+    const TARGET = Math.min(400, Math.round(area.width));
     const canvas = document.createElement("canvas");
     canvas.width = TARGET;
     canvas.height = TARGET;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas غير متاح");
-    ctx.drawImage(img, sx, sy, side, side, 0, 0, TARGET, TARGET);
+    ctx.drawImage(img, area.x, area.y, area.width, area.height, 0, 0, TARGET, TARGET);
     return await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("فشل ضغط الصورة"))), "image/jpeg", 0.85);
     });
   }
 
-  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !me) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropSrc(reader.result as string);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+    };
+    reader.onerror = () => toast.error("فشل قراءة الملف");
+    reader.readAsDataURL(file);
+  }
+
+  async function saveCroppedAvatar() {
+    if (!cropSrc || !croppedPixels || !me) return;
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("غير مسجل دخول");
-      const blob = await resizeImage(file);
+      const blob = await getCroppedBlob(cropSrc, croppedPixels);
       const path = `${user.id}/avatar.jpg`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
       if (upErr) throw upErr;
       const { data: signed, error: signErr } = await supabase.storage
         .from("avatars")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10-year expiry
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
       if (signErr || !signed) throw signErr ?? new Error("فشل توليد رابط الصورة");
       const url = signed.signedUrl;
       const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", me.id);
@@ -98,6 +111,7 @@ function SettingsPage() {
       toast.success("تم تحديث الصورة");
       qc.invalidateQueries({ queryKey: ["my-profile"] });
       qc.invalidateQueries({ queryKey: ["profiles"] });
+      setCropSrc(null);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "فشل الرفع");
     } finally {
@@ -304,6 +318,37 @@ function SettingsPage() {
           )}
         </section>
       )}
+
+      <Dialog open={!!cropSrc} onOpenChange={(o) => { if (!o && !uploading) setCropSrc(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>اقتصاص الصورة</DialogTitle>
+          </DialogHeader>
+          <div className="relative w-full h-72 bg-muted rounded-lg overflow-hidden">
+            {cropSrc && (
+              <Cropper
+                image={cropSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                showGrid={false}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+          <div>
+            <Label className="text-xs">التكبير</Label>
+            <Slider min={1} max={3} step={0.01} value={[zoom]} onValueChange={(v) => setZoom(v[0])} className="mt-2" />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setCropSrc(null)} disabled={uploading}>إلغاء</Button>
+            <Button onClick={saveCroppedAvatar} disabled={uploading} className="bg-primary text-primary-foreground">حفظ</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
