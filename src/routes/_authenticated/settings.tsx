@@ -44,7 +44,9 @@ function SettingsPage() {
 
   useEffect(() => {
     if (isAdminOnly) {
-      backfillEmails().catch(() => {});
+      backfillEmails()
+        .then(() => qc.invalidateQueries({ queryKey: ["profiles"] }))
+        .catch(() => {});
     }
   }, [isAdminOnly]);
 
@@ -317,6 +319,9 @@ function SettingsPage() {
                     <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.full_name}</div>
+                      {isAdminOnly && p.email && (
+                        <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{p.email}</div>
+                      )}
                     </div>
                     <span className="text-xs rounded-full bg-accent px-2 py-0.5">
                       {p.role === "admin" ? "Admin" : "موظف"}
