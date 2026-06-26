@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
-import { formatArDate, isLate as isLateFn, toArabicDigits } from "@/lib/date-ar";
-import { Progress } from "@/components/ui/progress";
+import { formatArDate, isLate as isLateFn } from "@/lib/date-ar";
 
 export interface TaskCardData {
   id: string;
@@ -11,7 +10,6 @@ export interface TaskCardData {
   created_at: string;
   deadline: string;
   borderColor: string;
-  percentage?: number;
 }
 
 export function TaskCard({ task, disableLink }: { task: TaskCardData; disableLink?: boolean }) {
@@ -40,15 +38,6 @@ export function TaskCard({ task, disableLink }: { task: TaskCardData; disableLin
           Deadline: {formatArDate(task.deadline)}
         </span>
       </div>
-      {typeof task.percentage === "number" && task.percentage > 0 && (
-        <div className="mt-3">
-          <div className="flex justify-between text-[11px] mb-1 text-muted-foreground">
-            <span>الإنجاز</span>
-            <span className="font-bold text-foreground">{toArabicDigits(task.percentage)}%</span>
-          </div>
-          <Progress value={task.percentage} className="h-1.5" />
-        </div>
-      )}
     </>
   );
   if (disableLink) {

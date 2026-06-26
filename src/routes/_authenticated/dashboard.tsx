@@ -30,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 type TaskRow = {
   id: string; title: string; status: TaskStatus;
   created_at: string; deadline: string; is_active: boolean;
-  task_assignments: { user_id: string; completion_percentage: number }[];
+  task_assignments: { user_id: string }[];
 };
 
 function Dashboard() {
@@ -50,7 +50,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, status, created_at, deadline, is_active, task_assignments(user_id, completion_percentage)")
+        .select("id, title, status, created_at, deadline, is_active, task_assignments(user_id)")
         .order("deadline", { ascending: true });
       if (error) throw error;
       return (data ?? []) as TaskRow[];
@@ -136,12 +136,9 @@ function Dashboard() {
         <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
           {tasks
             .filter((t) => t.task_assignments.some((a) => a.user_id === me?.id))
-            .map((t) => {
-              const my = t.task_assignments.find((a) => a.user_id === me?.id);
-              return (
-                <TaskCard key={t.id} task={toCard(t, me!.color, my?.completion_percentage)} disableLink={isOwner} />
-              );
-            })}
+            .map((t) => (
+              <TaskCard key={t.id} task={toCard(t, me!.color)} disableLink={isOwner} />
+            ))}
         </div>
       )}
     </div>
@@ -213,10 +210,9 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
                 {empTasks.length === 0 && (
                   <div className="text-xs text-muted-foreground px-1">لا مهام</div>
                 )}
-                {empTasks.map((t) => {
-                  const a = t.task_assignments.find((x) => x.user_id === emp.id);
-                  return <TaskCard key={t.id} task={toCard(t, emp.color, a?.completion_percentage)} disableLink={disableLink} />;
-                })}
+                {empTasks.map((t) => (
+                  <TaskCard key={t.id} task={toCard(t, emp.color)} disableLink={disableLink} />
+                ))}
               </div>
             )}
           </div>
@@ -226,10 +222,10 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
   );
 }
 
-function toCard(t: TaskRow, color: string, pct?: number): TaskCardData {
+function toCard(t: TaskRow, color: string): TaskCardData {
   return {
     id: t.id, title: t.title, status: t.status,
     created_at: t.created_at, deadline: t.deadline,
-    borderColor: color, percentage: pct ?? 0,
+    borderColor: color,
   };
 }
