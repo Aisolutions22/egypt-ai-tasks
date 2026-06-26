@@ -88,8 +88,11 @@ function SettingsPage() {
       const path = `${user.id}/avatar.jpg`;
       const { error: upErr } = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10); // 10-year expiry
+      if (signErr || !signed) throw signErr ?? new Error("فشل توليد رابط الصورة");
+      const url = signed.signedUrl;
       const { error: updErr } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", me.id);
       if (updErr) throw updErr;
       toast.success("تم تحديث الصورة");
