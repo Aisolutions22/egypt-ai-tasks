@@ -220,7 +220,7 @@ function TaskDetail() {
             const replied = m.reply_to_id ? messages.find((x) => x.id === m.reply_to_id) : null;
             return (
               <div key={m.id} className="flex gap-2.5">
-                <AvatarCircle name={sender?.full_name ?? "؟"} color={sender?.color ?? "#999"} size={32} />
+                <AvatarCircle name={sender?.full_name ?? "؟"} color={sender?.color ?? "#999"} avatarUrl={sender?.avatar_url} size={44} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-baseline gap-2">
                     <span className="font-bold text-sm" style={{ color: sender?.color }}>{sender?.full_name}</span>

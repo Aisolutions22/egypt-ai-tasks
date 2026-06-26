@@ -157,7 +157,7 @@ function AddTaskPage() {
                         sel ? "border-primary bg-primary/10" : "border-transparent bg-accent hover:bg-accent/80",
                       )}>
                       <span className="text-sm">{e.full_name}</span>
-                      <AvatarCircle name={e.full_name} color={e.color} size={26} />
+                      <AvatarCircle name={e.full_name} color={e.color} avatarUrl={e.avatar_url} size={32} />
                     </button>
                   );
                 })}

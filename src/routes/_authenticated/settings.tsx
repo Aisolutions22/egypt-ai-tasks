@@ -166,7 +166,7 @@ function SettingsPage() {
           <div className="divide-y">
             {profiles.filter((p) => p.is_active).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2">
-                <AvatarCircle name={p.full_name} color={p.color} size={32} />
+                <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{p.full_name}</div>
                   <div className="text-xs text-muted-foreground">
@@ -193,7 +193,7 @@ function SettingsPage() {
               <div className="divide-y mt-2">
                 {profiles.filter((p) => !p.is_active).map((p) => (
                   <div key={p.id} className="flex items-center gap-3 py-2 opacity-70">
-                    <AvatarCircle name={p.full_name} color={p.color} size={28} />
+                    <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={32} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.full_name}</div>
                     </div>
