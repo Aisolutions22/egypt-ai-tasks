@@ -38,6 +38,8 @@ function AddColleaguePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: profiles = [] } = useAllProfiles();
+  const { data: me } = useMyProfile();
+  const isOwner = me?.role === "owner";
   const create = useServerFn(createColleague);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
