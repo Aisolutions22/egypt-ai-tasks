@@ -9,6 +9,7 @@ import { AvatarCircle } from "@/components/avatar-circle";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2, ChevronDown, Inbox } from "lucide-react";
+import { TaskPieChart } from "@/components/task-pie-chart";
 import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
@@ -81,6 +82,7 @@ function Dashboard() {
   ).length;
   const late = allTasksRaw.filter((t) => t.status === "late" && t.is_active).length;
   const done = allTasksRaw.filter((t) => t.status === "closed").length;
+  const pieInProgress = inProgress - late;
 
   // Dashboard list shows tasks where is_active = true.
   const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.is_active), [allTasksRaw]);
@@ -116,6 +118,13 @@ function Dashboard() {
         <StatCard icon={CheckCircle2} label="منتهية"        value={done}       tint="#059669" active={filter === "done"}       onClick={() => setFilter(filter === "done" ? "all" : "done")} />
       </div>
 
+      {canSeeAll && (
+        <div className="glass rounded-2xl p-5">
+          <h2 className="text-lg font-bold mb-3">نظرة عامة</h2>
+          <TaskPieChart done={done} inProgress={pieInProgress} late={late} size={120} showLegend />
+        </div>
+      )}
+
       {isLoading && <div className="text-sm text-muted-foreground">جاري التحميل...</div>}
 
       {!isLoading && tasks.length === 0 && (
@@ -131,15 +140,9 @@ function Dashboard() {
       )}
 
       {canSeeAll ? (
-        <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
+        <EmployeeGrid tasks={tasks} allTasks={allTasksRaw} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
       ) : (
-        <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
-          {tasks
-            .filter((t) => t.task_assignments.some((a) => a.user_id === me?.id))
-            .map((t) => (
-              <TaskCard key={t.id} task={toCard(t, me!.color)} disableLink={isOwner} />
-            ))}
-        </div>
+        <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me ?? undefined} isOwner={isOwner} />
       )}
     </div>
   );
@@ -166,8 +169,8 @@ function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: t
   );
 }
 
-function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }: {
-  tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
+function EmployeeGrid({ tasks, allTasks, profiles, profileById, myProfileId, disableLink }: {
+  tasks: TaskRow[]; allTasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
 }) {
   const employees = profiles.filter((p) => p.role === "employee");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -189,6 +192,10 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
     <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
       {employees.map((emp) => {
         const empTasks = tasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
+        const empAll = allTasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
+        const empDone = empAll.filter((t) => t.status === "closed").length;
+        const empLate = empAll.filter((t) => t.status === "late" && t.is_active).length;
+        const empInProgress = empAll.filter((t) => t.is_active && (t.status === "new" || t.status === "inProgress")).length;
         const isCollapsed = collapsed.has(emp.id);
         return (
           <div key={emp.id} className="glass rounded-2xl p-3 space-y-3">
@@ -203,6 +210,7 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
                 <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
               </div>
+              <TaskPieChart done={empDone} inProgress={empInProgress} late={empLate} size={36} />
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
             </button>
             {!isCollapsed && (
@@ -219,6 +227,31 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
         );
       })}
     </div>
+  );
+}
+
+function PersonalView({ allTasks, tasks, me, isOwner }: {
+  allTasks: TaskRow[]; tasks: TaskRow[]; me: Profile | undefined; isOwner: boolean;
+}) {
+  if (!me) return null;
+  const mine = allTasks.filter((t) => t.task_assignments.some((a) => a.user_id === me.id));
+  const myDone = mine.filter((t) => t.status === "closed").length;
+  const myLate = mine.filter((t) => t.status === "late" && t.is_active).length;
+  const myInProgress = mine.filter((t) => t.is_active && (t.status === "new" || t.status === "inProgress")).length;
+  return (
+    <>
+      <div className="glass rounded-2xl p-5">
+        <h2 className="text-lg font-bold mb-3">نظرة عامة</h2>
+        <TaskPieChart done={myDone} inProgress={myInProgress} late={myLate} size={120} showLegend />
+      </div>
+      <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
+        {tasks
+          .filter((t) => t.task_assignments.some((a) => a.user_id === me.id))
+          .map((t) => (
+            <TaskCard key={t.id} task={toCard(t, me.color)} disableLink={isOwner} />
+          ))}
+      </div>
+    </>
   );
 }
 
