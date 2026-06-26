@@ -30,7 +30,10 @@ export const createColleague = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => CreateColleagueInput.parse(d))
   .handler(async ({ data, context }) => {
-    await assertRole(context.userId, ["owner", "admin"]);
+    const callerRole = await assertRole(context.userId, ["owner", "admin"]);
+    if (data.role === "owner" && callerRole !== "owner") {
+      throw new Error("لا يمكن لمشرف إنشاء حساب مالك");
+    }
 
     // Color uniqueness
     const { data: taken } = await supabaseAdmin
