@@ -13,7 +13,8 @@ import { ColorPicker } from "@/components/color-picker";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { offboardColleague, resetColleaguePassword } from "@/lib/admin.functions";
 import { toast } from "sonner";
-import { UserX, Moon, Sun, KeyRound } from "lucide-react";
+import { UserX, Moon, Sun, KeyRound, Camera } from "lucide-react";
+import { useRef } from "react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -113,6 +114,34 @@ function SettingsPage() {
 
       <section className="glass rounded-2xl p-5 space-y-4">
         <h2 className="font-bold">حسابي</h2>
+        {me && (
+          <div className="flex flex-col items-center gap-2">
+            <div className="relative">
+              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={80} />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 left-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background disabled:opacity-50"
+                aria-label="تغيير الصورة"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onPickAvatar}
+              />
+            </div>
+            {me.avatar_url && (
+              <button type="button" onClick={removeAvatar} className="text-xs text-muted-foreground hover:text-destructive underline">
+                إزالة الصورة
+              </button>
+            )}
+          </div>
+        )}
         <div><Label>الاسم</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5" /></div>
         <div>
           <Label>اللون</Label>
