@@ -183,7 +183,7 @@ function TaskDetail() {
         </div>
         <div>
           <div className="text-muted-foreground text-xs mb-1.5">التواريخ</div>
-          <div>تاريخ الإنشاء: {formatArDate(task.created_at)}</div>
+          <div>تاريخ الإنشاء: {formatArDateTime(task.created_at)}</div>
           <div className="text-warning">Deadline: {formatArDate(task.deadline)}</div>
         </div>
         {task.description && (
