@@ -201,7 +201,7 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
               className="w-full flex items-center gap-3 px-1 text-right hover:opacity-80 active:scale-[0.98] transition"
               aria-expanded={!isCollapsed}
             >
-              <AvatarCircle name={emp.full_name} color={emp.color} avatarUrl={emp.avatar_url} size={44} />
+              <AvatarCircle name={emp.full_name} color={emp.color} avatarUrl={emp.avatar_url} size={56} />
               <div className="leading-tight flex-1 min-w-0">
                 <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>

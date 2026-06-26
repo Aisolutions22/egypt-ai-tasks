@@ -80,7 +80,7 @@ function ArchivePage() {
                 <div className="flex -space-x-2 rtl:space-x-reverse">
                   {t.task_assignments?.slice(0, 3).map((a: { user_id: string }) => {
                     const p = profileById.get(a.user_id);
-                    return p ? <AvatarCircle key={a.user_id} name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={36} /> : null;
+                    return p ? <AvatarCircle key={a.user_id} name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={44} /> : null;
                   })}
                 </div>
                 <div className="flex-1 min-w-0">

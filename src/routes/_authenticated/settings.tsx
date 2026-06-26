@@ -48,18 +48,45 @@ function SettingsPage() {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  async function resizeImage(file: File): Promise<Blob> {
+    const dataUrl: string = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(new Error("فشل قراءة الملف"));
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = () => reject(new Error("فشل تحميل الصورة"));
+      i.src = dataUrl;
+    });
+    const TARGET = 400;
+    const side = Math.min(img.width, img.height);
+    const sx = (img.width - side) / 2;
+    const sy = (img.height - side) / 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = TARGET;
+    canvas.height = TARGET;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas غير متاح");
+    ctx.drawImage(img, sx, sy, side, side, 0, 0, TARGET, TARGET);
+    return await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("فشل ضغط الصورة"))), "image/jpeg", 0.85);
+    });
+  }
+
   async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !me) return;
-    if (file.size > 2 * 1024 * 1024) return toast.error("الصورة كبيرة جداً، الحد ٢ ميجا");
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("غير مسجل دخول");
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-      const path = `${user.id}/avatar.${ext}`;
-      const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      const blob = await resizeImage(file);
+      const path = `${user.id}/avatar.jpg`;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(path, blob, { upsert: true, contentType: "image/jpeg" });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
       const url = `${pub.publicUrl}?t=${Date.now()}`;
@@ -155,12 +182,12 @@ function SettingsPage() {
         {me && (
           <div className="flex flex-col items-center gap-2">
             <div className="relative">
-              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={80} />
+              <AvatarCircle name={me.full_name} color={me.color} avatarUrl={me.avatar_url} size={96} />
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="absolute bottom-0 left-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background disabled:opacity-50"
+                className="absolute bottom-0 left-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md border-2 border-background disabled:opacity-50 cursor-pointer transition-transform duration-150 hover:scale-110 hover:bg-primary/90 active:scale-95"
                 aria-label="تغيير الصورة"
               >
                 <Camera className="h-4 w-4" />
@@ -233,7 +260,7 @@ function SettingsPage() {
           <div className="divide-y">
             {profiles.filter((p) => p.is_active).map((p) => (
               <div key={p.id} className="flex items-center gap-3 py-2">
-                <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
+                <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={48} />
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{p.full_name}</div>
                   <div className="text-xs text-muted-foreground">
@@ -260,7 +287,7 @@ function SettingsPage() {
               <div className="divide-y mt-2">
                 {profiles.filter((p) => !p.is_active).map((p) => (
                   <div key={p.id} className="flex items-center gap-3 py-2 opacity-70">
-                    <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={32} />
+                    <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.full_name}</div>
                     </div>
