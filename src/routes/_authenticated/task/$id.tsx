@@ -81,11 +81,6 @@ function TaskDetail() {
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
   const myAssignment = task?.task_assignments?.find((a: { user_id: string }) => a.user_id === me?.id);
-  const [pct, setPct] = useState<number>(myAssignment?.completion_percentage ?? 0);
-
-  useEffect(() => {
-    if (myAssignment) setPct(myAssignment.completion_percentage);
-  }, [myAssignment?.completion_percentage]);
 
   if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
 
@@ -98,14 +93,6 @@ function TaskDetail() {
       task_id: id, sender_id: me.id, content: content.trim(), reply_to_id: replyTo?.id ?? null,
     });
     if (error) { toast.error("تعذر الإرسال"); return; }
-    // Update assignment percentage if employee
-    if (myAssignment && pct !== myAssignment.completion_percentage) {
-      await supabase.from("task_assignments")
-        .update({ completion_percentage: pct, employee_status: pct >= 100 ? "done" : "inProgress" })
-        .eq("id", myAssignment.id);
-      qc.invalidateQueries({ queryKey: ["task", id] });
-      qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
-    }
     // Notify admins on employee message
     if (me.role === "employee") {
       const admins = profiles.filter((p) => p.role === "admin" || p.role === "owner");
@@ -182,14 +169,13 @@ function TaskDetail() {
         <div>
           <div className="text-muted-foreground text-xs mb-1.5">منسوب إلى</div>
           <div className="flex flex-wrap gap-2">
-            {task.task_assignments?.map((a: { id: string; user_id: string; completion_percentage: number }) => {
+            {task.task_assignments?.map((a: { id: string; user_id: string }) => {
               const p = profileById.get(a.user_id);
               if (!p) return null;
               return (
                 <span key={a.id} className="inline-flex items-center gap-1.5 bg-accent rounded-full pl-3 pr-1 py-0.5">
                   <span>{p.full_name}</span>
                   <span className="inline-block h-2 w-2 rounded-full" style={{ background: p.color }} />
-                  <span className="text-[11px] bg-primary/15 text-primary px-1.5 rounded-full">{toArabicDigits(a.completion_percentage)}%</span>
                 </span>
               );
             })}
@@ -268,16 +254,6 @@ function TaskDetail() {
               }}
               placeholder="اكتب ردك هنا... (Enter للإرسال، Shift+Enter لسطر جديد)" rows={3}
             />
-
-            {myAssignment && (
-              <div>
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-muted-foreground">نسبة الإنجاز</span>
-                  <span className="font-bold">{toArabicDigits(pct)}%</span>
-                </div>
-                <Slider value={[pct]} max={100} step={1} onValueChange={(v) => setPct(v[0])} />
-              </div>
-            )}
             <div className="flex justify-end">
               <Button onClick={send} disabled={!content.trim()} className="bg-primary text-primary-foreground">
                 <Send className="h-4 w-4" />إرسال
