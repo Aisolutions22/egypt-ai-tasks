@@ -82,6 +82,7 @@ function Dashboard() {
   ).length;
   const late = allTasksRaw.filter((t) => t.status === "late" && t.is_active).length;
   const done = allTasksRaw.filter((t) => t.status === "closed").length;
+  const pieInProgress = inProgress - late;
 
   // Dashboard list shows tasks where is_active = true.
   const activeTasks = useMemo(() => allTasksRaw.filter((t) => t.is_active), [allTasksRaw]);
