@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/archive")({
     const { data } = await supabase.auth.getUser();
     if (!data.user) throw redirect({ to: "/login" });
     const { data: p } = await supabase.from("profiles").select("role").eq("user_id", data.user.id).maybeSingle();
-    if (!p || (p.role !== "admin" && p.role !== "owner")) throw redirect({ to: "/dashboard" });
+    if (!p || (p.role !== "admin" && p.role !== "owner" && p.role !== "employee")) throw redirect({ to: "/dashboard" });
   },
   head: () => ({
     meta: [
