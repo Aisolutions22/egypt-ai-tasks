@@ -30,7 +30,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard",     label: "لوحة التحكم", icon: Home },
   { to: "/add-task",      label: "إضافة مهمة",  icon: Plus, adminOnly: true },
   { to: "/add-colleague", label: "إضافة موظف",  icon: Users, adminOnly: true },
-  { to: "/archive",       label: "Archive",     icon: Archive, adminOrOwner: true },
+  { to: "/archive",       label: "Archive",     icon: Archive },
   { to: "/settings",      label: "الإعدادات",   icon: SettingsIcon },
 ];
 
