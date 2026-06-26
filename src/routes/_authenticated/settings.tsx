@@ -38,8 +38,15 @@ function SettingsPage() {
   const qc = useQueryClient();
   const offboard = useServerFn(offboardColleague);
   const resetPw = useServerFn(resetColleaguePassword);
+  const backfillEmails = useServerFn(backfillProfileEmails);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
   const isAdminOnly = me?.role === "admin";
+
+  useEffect(() => {
+    if (isAdminOnly) {
+      backfillEmails({}).catch(() => {});
+    }
+  }, [isAdminOnly]);
 
   const [name, setName] = useState("");
   const [color, setColor] = useState<string | null>(null);
