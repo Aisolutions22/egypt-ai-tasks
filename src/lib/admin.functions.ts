@@ -106,7 +106,7 @@ export const resetColleaguePassword = createServerFn({ method: "POST" })
       .eq("id", data.profile_id)
       .maybeSingle();
     if (error || !target) throw new Error("الموظف غير موجود");
-    if (target.role === "owner") throw new Error("لا يمكن تغيير كلمة مرور المالك من هنا");
+    
 
     const { error: uErr } = await supabaseAdmin.auth.admin.updateUserById(
       target.user_id,
