@@ -44,7 +44,7 @@ function SettingsPage() {
 
   useEffect(() => {
     if (isAdminOnly) {
-      backfillEmails({}).catch(() => {});
+      backfillEmails().catch(() => {});
     }
   }, [isAdminOnly]);
 
