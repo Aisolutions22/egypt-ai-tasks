@@ -55,6 +55,7 @@ export const createColleague = createServerFn({ method: "POST" })
       full_name: data.full_name,
       role: data.role,
       color: data.color,
+      email: data.email,
     });
     if (pErr) {
       // rollback auth user
