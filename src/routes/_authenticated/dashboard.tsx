@@ -263,3 +263,50 @@ function toCard(t: TaskRow, color: string): TaskCardData {
     borderColor: color,
   };
 }
+
+function AnalyticsView({ profiles, allTasks }: { profiles: Profile[]; allTasks: TaskRow[] }) {
+  const employees = profiles.filter((p) => p.role === "employee");
+  if (employees.length === 0) {
+    return (
+      <div className="glass rounded-2xl p-10 text-center">
+        <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+        <p className="text-foreground font-medium">لا يوجد موظفون بعد</p>
+      </div>
+    );
+  }
+  return (
+    <div className="glass rounded-2xl p-4 space-y-3">
+      {employees.map((emp) => {
+        const empAll = allTasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
+        const empDone = empAll.filter((t) => t.status === "closed").length;
+        const empLate = empAll.filter((t) => t.status === "late" && t.is_active).length;
+        const empInProgress = empAll.filter((t) => t.is_active && (t.status === "new" || t.status === "inProgress")).length;
+        const breakdown = [
+          { color: "#059669", label: "منتهية", value: empDone },
+          { color: "#D97706", label: "قيد التنفيذ", value: empInProgress },
+          { color: "#DC2626", label: "متأخرة", value: empLate },
+        ];
+        return (
+          <div key={emp.id} className="flex items-center gap-4 p-3 rounded-xl bg-card/40">
+            <AvatarCircle name={emp.full_name} color={emp.color} avatarUrl={emp.avatar_url} size={48} />
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
+              <div className="text-[11px] text-muted-foreground">{toArabicDigits(empAll.length)} مهمة</div>
+            </div>
+            <TaskPieChart done={empDone} inProgress={empInProgress} late={empLate} size={56} />
+            <ul className="space-y-1 text-xs min-w-[110px]">
+              {breakdown.map((b) => (
+                <li key={b.label} className="flex items-center gap-2">
+                  <span className="inline-block h-2 w-2 rounded-full" style={{ background: b.color }} />
+                  <span className="text-foreground">{b.label}</span>
+                  <span className="text-muted-foreground">{toArabicDigits(b.value)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
