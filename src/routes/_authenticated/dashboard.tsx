@@ -114,7 +114,7 @@ function Dashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatCard icon={ListTodo}     label="إجمالي المهام" value={total}      tint="#2563EB" active={filter === "all"}        onClick={() => setFilter("all")} />
-        <StatCard icon={Clock}        label="قيد التنفيذ"    value={inProgress} tint="#D97706" active={filter === "inProgress"} onClick={() => setFilter(filter === "inProgress" ? "all" : "inProgress")} />
+        <StatCard icon={Clock}        label="قيد التنفيذ"    value={pieInProgress} tint="#D97706" active={filter === "inProgress"} onClick={() => setFilter(filter === "inProgress" ? "all" : "inProgress")} />
         <StatCard icon={AlertTriangle} label="متأخرة"       value={late}       tint="#DC2626" active={filter === "late"}       onClick={() => setFilter(filter === "late" ? "all" : "late")} />
         <StatCard icon={CheckCircle2} label="منتهية"        value={done}       tint="#059669" active={filter === "done"}       onClick={() => setFilter(filter === "done" ? "all" : "done")} />
       </div>
