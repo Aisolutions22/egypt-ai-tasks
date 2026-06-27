@@ -82,6 +82,8 @@ function TaskDetail() {
 
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const archiveToSheet = useServerFn(archiveMessageToSheet);
+  const [replyTo, setReplyTo] = useState<Msg | null>(null);
   const myAssignment = task?.task_assignments?.find((a: { user_id: string }) => a.user_id === me?.id);
 
   if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
