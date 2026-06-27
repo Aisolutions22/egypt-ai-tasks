@@ -96,6 +96,16 @@ function TaskDetail() {
       task_id: id, sender_id: me.id, content: content.trim(), reply_to_id: replyTo?.id ?? null,
     });
     if (error) { toast.error("تعذر الإرسال"); return; }
+    // Fire-and-forget archive to Google Sheets — never blocks UX
+    const messageText = content.trim();
+    archiveToSheet({
+      data: {
+        taskTitle: task.title,
+        senderName: me.full_name,
+        content: messageText,
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
     // Notify admins on employee message
     if (me.role === "employee") {
       const admins = profiles.filter((p) => p.role === "admin" || p.role === "owner");
