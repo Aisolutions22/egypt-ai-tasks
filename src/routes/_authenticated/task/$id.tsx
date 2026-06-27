@@ -100,7 +100,7 @@ function TaskDetail() {
     const messageText = content.trim();
     archiveToSheet({
       data: {
-        taskTitle: task.title,
+        taskTitle: task?.title ?? "",
         senderName: me.full_name,
         content: messageText,
         whenText: formatArDateTime(new Date()),
