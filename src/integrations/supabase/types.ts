@@ -347,6 +347,13 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      get_profile_emails: {
+        Args: never
+        Returns: {
+          email: string
+          id: string
+        }[]
+      }
       is_admin_only: { Args: never; Returns: boolean }
       is_admin_or_owner: { Args: never; Returns: boolean }
       is_assigned_to_task: { Args: { _task_id: string }; Returns: boolean }

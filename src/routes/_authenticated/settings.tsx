@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
+import { useMyProfile, useAllProfiles, useProfileEmails } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
 import { Label } from "@/components/ui/label";
@@ -41,11 +41,12 @@ function SettingsPage() {
   const backfillEmails = useServerFn(backfillProfileEmails);
   const isAdmin = me?.role === "admin" || me?.role === "owner";
   const isAdminOnly = me?.role === "admin";
+  const { data: emailById } = useProfileEmails(isAdmin);
 
   useEffect(() => {
     if (isAdminOnly) {
       backfillEmails()
-        .then(() => qc.invalidateQueries({ queryKey: ["profiles"] }))
+        .then(() => qc.invalidateQueries({ queryKey: ["profile-emails"] }))
         .catch(() => {});
     }
   }, [isAdminOnly]);
@@ -292,8 +293,8 @@ function SettingsPage() {
                   <div className="text-xs text-muted-foreground">
                     {p.role === "owner" ? "Owner" : p.role === "admin" ? "Admin" : "موظف"}
                   </div>
-                  {isAdminOnly && p.email && (
-                    <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{p.email}</div>
+                  {isAdminOnly && emailById?.get(p.id) && (
+                    <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{emailById.get(p.id)}</div>
                   )}
                 </div>
                 {isAdminOnly && (
@@ -319,8 +320,8 @@ function SettingsPage() {
                     <AvatarCircle name={p.full_name} color={p.color} avatarUrl={p.avatar_url} size={40} />
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{p.full_name}</div>
-                      {isAdminOnly && p.email && (
-                        <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{p.email}</div>
+                      {isAdminOnly && emailById?.get(p.id) && (
+                        <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{emailById.get(p.id)}</div>
                       )}
                     </div>
                     <span className="text-xs rounded-full bg-accent px-2 py-0.5">
