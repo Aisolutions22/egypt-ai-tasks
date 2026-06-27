@@ -1,25 +1,25 @@
-Remove the visible completion-percentage feature from three UI surfaces while leaving the underlying `task_assignments.completion_percentage` database column and `add-task.tsx` untouched.
+# Fix Google Sheets archive 404
 
-### 1. `src/routes/_authenticated/task/$id.tsx`
-- Delete the `pct`/`setPct` state and the `useEffect` that syncs it from `myAssignment`.
-- Delete the `task_assignments` update block inside `send()` (the one that writes `completion_percentage` and `employee_status`), keeping the `task_messages` insert and admin notification logic unchanged.
-- Delete the "نسبة الإنجاز" label + `<Slider>` block above the send button.
-- In the "منسوب إلى" assignee chips, remove the percentage badge span (`{toArabicDigits(a.completion_percentage)}%`), keeping only the name and color dot.
-- Drop the now-unused `Slider` import if it is no longer used elsewhere in the file.
+## Root cause
+Server logs show every `append` call hits a 404 from Google. The requested URL contains the full spreadsheet URL where the ID should be:
 
-### 2. `src/components/task-card.tsx`
-- Remove `percentage` from `TaskCardData` interface.
-- Remove the entire `<Progress>` + percentage-text block that renders when `percentage > 0`.
-- Remove the `Progress` import and `toArabicDigits` import if they become unused.
+```
+/v4/spreadsheets/https://docs.google.com/spreadsheets/d/1UZHbl...pqv0/edit?gid=0
+```
 
-### 3. `src/routes/_authenticated/dashboard.tsx`
-- Remove `completion_percentage` from the `task_assignments` select query.
-- Update `TaskRow` type so `task_assignments` only contains `user_id`.
-- Remove the `percentage` parameter from `toCard` and stop passing `my?.completion_percentage` / `a?.completion_percentage` at the two `TaskCard` call sites.
+The `GOOGLE_SHEET_ID` secret was saved as the full URL, not the ID segment.
 
-### 4. What is NOT changing
-- `add-task.tsx` stays as-is.
-- Database schema, RLS, and `task_assignments.completion_percentage` column remain untouched.
-- No migration needed.
+## Fix (pick one — recommended: both)
 
-After edits, run a type-check to confirm no broken references or unused-import warnings.
+1. **Update the secret** `GOOGLE_SHEET_ID` to just the ID:
+   `1UZHblRdNvurnNEQHbCqC1IdICtNMjhDWTne7eezpqv0`
+
+2. **Harden the server function** `src/lib/sheets-archive.functions.ts` to accept either form. Before building the URL, extract the ID:
+   - If the value matches `/spreadsheets/d/([a-zA-Z0-9-_]+)`, use the captured group.
+   - Otherwise use the value as-is, after trimming whitespace.
+
+   This makes the integration resilient to whoever sets the secret pasting the URL again.
+
+## Verification
+- Send a test message in a task.
+- Re-check server logs for `[sheets-archive]` — should show no 404, and the row should appear in Sheet1.

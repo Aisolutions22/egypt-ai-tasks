@@ -74,11 +74,13 @@ export const archiveMessageToSheet = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-      const sheetId = process.env.GOOGLE_SHEET_ID;
-      if (!saJson || !sheetId) {
+      const rawSheetId = process.env.GOOGLE_SHEET_ID;
+      if (!saJson || !rawSheetId) {
         console.error("[sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID");
         return { ok: false as const };
       }
+      const urlMatch = rawSheetId.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      const sheetId = (urlMatch ? urlMatch[1] : rawSheetId).trim();
       const sa = JSON.parse(saJson) as { client_email: string; private_key: string };
       const accessToken = await getAccessToken(sa.client_email, sa.private_key);
 
