@@ -193,10 +193,6 @@ function EmployeeGrid({ tasks, allTasks, profiles, profileById, myProfileId, dis
     <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
       {employees.map((emp) => {
         const empTasks = tasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
-        const empAll = allTasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
-        const empDone = empAll.filter((t) => t.status === "closed").length;
-        const empLate = empAll.filter((t) => t.status === "late" && t.is_active).length;
-        const empInProgress = empAll.filter((t) => t.is_active && (t.status === "new" || t.status === "inProgress")).length;
         const isCollapsed = collapsed.has(emp.id);
         return (
           <div key={emp.id} className="glass rounded-2xl p-3 space-y-3">
