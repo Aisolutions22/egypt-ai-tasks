@@ -59,7 +59,7 @@ function LoginPage() {
       />
       <div className="glass rounded-3xl p-8 w-full max-w-md shadow-xl">
         <div className="flex flex-col items-center text-center mb-6">
-          <h1 className="text-2xl font-bold whitespace-pre-wrap">Ai Tasks Solutions&nbsp;{"\n"}نظام إدارة المهام الذكي</h1>
+          <h1 className="text-2xl font-bold whitespace-pre-wrap">{"Ai Tasks Solutions\u00a0\nنظام إدارة المهام الذكي"}</h1>
           <p className="text-sm text-muted-foreground mt-1">سجّل دخولك للمتابعة</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-4">
