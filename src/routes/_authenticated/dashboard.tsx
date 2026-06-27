@@ -141,7 +141,11 @@ function Dashboard() {
       )}
 
       {canSeeAll ? (
-        <EmployeeGrid tasks={tasks} allTasks={allTasksRaw} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
+        filter === "all" ? (
+          <AnalyticsView profiles={profiles} allTasks={allTasksRaw} />
+        ) : (
+          <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
+        )
       ) : (
         <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me ?? undefined} isOwner={isOwner} />
       )}
