@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
 import { AvatarCircle } from "@/components/avatar-circle";
@@ -11,6 +12,7 @@ import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
   beforeLoad: async () => {
@@ -80,6 +82,7 @@ function TaskDetail() {
 
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const archiveToSheet = useServerFn(archiveMessageToSheet);
   const myAssignment = task?.task_assignments?.find((a: { user_id: string }) => a.user_id === me?.id);
 
   if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
@@ -93,6 +96,16 @@ function TaskDetail() {
       task_id: id, sender_id: me.id, content: content.trim(), reply_to_id: replyTo?.id ?? null,
     });
     if (error) { toast.error("تعذر الإرسال"); return; }
+    // Fire-and-forget archive to Google Sheets — never blocks UX
+    const messageText = content.trim();
+    archiveToSheet({
+      data: {
+        taskTitle: task?.title ?? "",
+        senderName: me.full_name,
+        content: messageText,
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
     // Notify admins on employee message
     if (me.role === "employee") {
       const admins = profiles.filter((p) => p.role === "admin" || p.role === "owner");
