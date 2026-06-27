@@ -211,8 +211,8 @@ function EmployeeGrid({ tasks, allTasks, profiles, profileById, myProfileId, dis
                 <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
                 <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
               </div>
-              <TaskPieChart done={empDone} inProgress={empInProgress} late={empLate} size={36} />
               <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
+
             </button>
             {!isCollapsed && (
               <div className="space-y-2">
