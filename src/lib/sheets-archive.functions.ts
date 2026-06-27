@@ -43,9 +43,10 @@ async function getAccessToken(clientEmail: string, privateKeyPem: string): Promi
   const signingInput = `${b64urlFromString(JSON.stringify(header))}.${b64urlFromString(JSON.stringify(claims))}`;
 
   const der = pemToDer(privateKeyPem.replace(/\\n/g, "\n"));
+  const derBuf = der.buffer.slice(der.byteOffset, der.byteOffset + der.byteLength) as ArrayBuffer;
   const key = await crypto.subtle.importKey(
     "pkcs8",
-    der,
+    derBuf,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
     ["sign"],
