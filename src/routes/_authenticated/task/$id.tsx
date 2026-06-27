@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useParams, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
 import { AvatarCircle } from "@/components/avatar-circle";
@@ -11,6 +12,7 @@ import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
   beforeLoad: async () => {
