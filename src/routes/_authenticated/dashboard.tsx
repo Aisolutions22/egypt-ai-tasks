@@ -174,8 +174,8 @@ function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: t
   );
 }
 
-function EmployeeGrid({ tasks, allTasks, profiles, profileById, myProfileId, disableLink }: {
-  tasks: TaskRow[]; allTasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
+function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }: {
+  tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
 }) {
   const employees = profiles.filter((p) => p.role === "employee");
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
