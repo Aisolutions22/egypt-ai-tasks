@@ -90,6 +90,7 @@ function Dashboard() {
   const tasks = useMemo(() => {
     if (filter === "all") return activeTasks;
     if (filter === "done") return allTasksRaw.filter((t) => t.status === "closed");
+    if (filter === "inProgress") return activeTasks.filter((t) => t.status === "new" || t.status === "inProgress");
     return activeTasks.filter((t) => t.status === filter);
   }, [activeTasks, allTasksRaw, filter]);
 
