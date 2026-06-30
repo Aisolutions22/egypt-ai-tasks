@@ -72,18 +72,36 @@ function TaskDetail() {
     },
   });
 
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["task-attachments", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("task_attachments")
+        .select("*")
+        .eq("task_id", id)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as Attachment[];
+    },
+  });
+
   useEffect(() => {
     const ch = supabase
       .channel("tmsg-" + id)
       .on("postgres_changes", { event: "*", schema: "public", table: "task_messages", filter: `task_id=eq.${id}` },
         () => qc.invalidateQueries({ queryKey: ["task-messages", id] }))
+      .on("postgres_changes", { event: "*", schema: "public", table: "task_attachments", filter: `task_id=eq.${id}` },
+        () => qc.invalidateQueries({ queryKey: ["task-attachments", id] }))
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [id, qc]);
 
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
+  const uploadFile = useServerFn(uploadDriveFile);
   const myAssignment = task?.task_assignments?.find((a: { user_id: string }) => a.user_id === me?.id);
 
   if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
