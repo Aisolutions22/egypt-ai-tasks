@@ -115,9 +115,10 @@ function AddTaskPage() {
     archiveToSheet({
       data: {
         taskTitle: title.trim(),
+        taskDetails: description.trim(),
         type: "مهمة جديدة",
         senderName: me.full_name,
-        content: `التفاصيل: ${description.trim()} | الموعد النهائي: ${new Date(deadlineIso).toLocaleString("ar-EG")} | المسؤول: ${assigneeNames}`,
+        content: `الموعد النهائي: ${new Date(deadlineIso).toLocaleString("ar-EG")} | المسؤول: ${assigneeNames}`,
         whenText: formatArDateTime(new Date()),
       },
     }).catch(() => {});
