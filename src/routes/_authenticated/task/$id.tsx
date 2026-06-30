@@ -98,11 +98,15 @@ function TaskDetail() {
     if (error) { toast.error("تعذر الإرسال"); return; }
     // Fire-and-forget archive to Google Sheets — never blocks UX
     const messageText = content.trim();
+    const archiveContent = replyTo
+      ? `رد على "${replyTo.content.slice(0, 60)}": ${messageText}`
+      : messageText;
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
+        type: "رسالة",
         senderName: me.full_name,
-        content: messageText,
+        content: archiveContent,
         whenText: formatArDateTime(new Date()),
       },
     }).catch(() => {});
