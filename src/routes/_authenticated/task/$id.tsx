@@ -35,6 +35,8 @@ export const Route = createFileRoute("/_authenticated/task/$id")({
 });
 
 type Msg = { id: string; task_id: string; sender_id: string; content: string; reply_to_id: string | null; created_at: string };
+type Attachment = { id: string; task_id: string; uploaded_by: string; file_name: string; drive_file_id: string | null; drive_view_url: string | null; created_at: string };
+type TimelineItem = { kind: "msg"; created_at: string; msg: Msg } | { kind: "att"; created_at: string; att: Attachment };
 
 function TaskDetail() {
   const { id } = useParams({ from: "/_authenticated/task/$id" });
