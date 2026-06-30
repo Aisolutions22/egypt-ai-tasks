@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const InputSchema = z.object({
   taskTitle: z.string(),
+  taskDetails: z.string().optional().default(""),
   type: z.enum(["مهمة جديدة", "رسالة", "تم الإغلاق"]),
   senderName: z.string(),
   content: z.string(),
@@ -85,7 +86,7 @@ export const archiveMessageToSheet = createServerFn({ method: "POST" })
       const sa = JSON.parse(saJson) as { client_email: string; private_key: string };
       const accessToken = await getAccessToken(sa.client_email, sa.private_key);
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:E:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
@@ -93,7 +94,7 @@ export const archiveMessageToSheet = createServerFn({ method: "POST" })
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          values: [[data.whenText, data.taskTitle, data.type, data.senderName, data.content]],
+          values: [[data.whenText, data.taskTitle, data.taskDetails, data.type, data.senderName, data.content]],
         }),
       });
       if (!res.ok) {

@@ -104,6 +104,7 @@ function TaskDetail() {
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
+        taskDetails: "",
         type: "رسالة",
         senderName: me.full_name,
         content: archiveContent,
@@ -134,6 +135,7 @@ function TaskDetail() {
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
+        taskDetails: "",
         type: "تم الإغلاق",
         senderName: me.full_name,
         content: "",
