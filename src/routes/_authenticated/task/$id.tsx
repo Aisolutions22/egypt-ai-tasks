@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams, redirect } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
-import { ArrowRight, Check, Flag, Reply, X, Send } from "lucide-react";
+import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
+import { uploadDriveFile } from "@/lib/drive-upload.functions";
 
 export const Route = createFileRoute("/_authenticated/task/$id")({
   beforeLoad: async () => {
