@@ -110,6 +110,19 @@ function AddTaskPage() {
       );
     }
 
+    // Fire-and-forget archive to Google Sheets — never blocks UX
+    const assigneeNames = profiles.filter((p) => ids.includes(p.id)).map((p) => p.full_name).join("، ");
+    archiveToSheet({
+      data: {
+        taskTitle: title.trim(),
+        type: "مهمة جديدة",
+        senderName: me.full_name,
+        content: `التفاصيل: ${description.trim()} | الموعد النهائي: ${new Date(deadlineIso).toLocaleString("ar-EG")} | المسؤول: ${assigneeNames}`,
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
+
+
     // Notifications + email
     await supabase.from("notifications").insert(
       ids.map((uid) => ({
