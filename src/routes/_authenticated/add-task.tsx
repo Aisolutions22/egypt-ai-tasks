@@ -41,6 +41,7 @@ function AddTaskPage() {
   const { data: profiles = [] } = useAllProfiles();
   const employees = profiles.filter((p) => p.is_active && (p.role === "employee" || p.role === "admin"));
   const sendEmail = useServerFn(sendNewTaskEmail);
+  const archiveToSheet = useServerFn(archiveMessageToSheet);
   const qc = useQueryClient();
 
   const { data: settings } = useQuery({
