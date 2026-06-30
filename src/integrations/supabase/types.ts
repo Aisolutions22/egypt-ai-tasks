@@ -196,27 +196,33 @@ export type Database = {
       task_attachments: {
         Row: {
           created_at: string
+          drive_file_id: string | null
+          drive_view_url: string | null
           file_name: string
           file_url: string
           id: string
           task_id: string
-          uploaded_by: string | null
+          uploaded_by: string
         }
         Insert: {
           created_at?: string
+          drive_file_id?: string | null
+          drive_view_url?: string | null
           file_name: string
           file_url: string
           id?: string
           task_id: string
-          uploaded_by?: string | null
+          uploaded_by: string
         }
         Update: {
           created_at?: string
+          drive_file_id?: string | null
+          drive_view_url?: string | null
           file_name?: string
           file_url?: string
           id?: string
           task_id?: string
-          uploaded_by?: string | null
+          uploaded_by?: string
         }
         Relationships: [
           {
