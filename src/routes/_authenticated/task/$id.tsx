@@ -183,6 +183,59 @@ function TaskDetail() {
     qc.invalidateQueries({ queryKey: ["task", id] });
   }
 
+  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !me) return;
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("الملف أكبر من ٨ ميجا");
+      return;
+    }
+    setUploading(true);
+    try {
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || "");
+          const idx = result.indexOf(",");
+          resolve(idx >= 0 ? result.slice(idx + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const res = await uploadFile({
+        data: {
+          taskTitle: task?.title ?? "",
+          fileName: file.name,
+          mimeType: file.type || "application/pdf",
+          base64Data,
+        },
+      });
+      if (!res.ok) {
+        toast.error("فشل رفع الملف");
+        return;
+      }
+      const { error: insErr } = await supabase.from("task_attachments").insert({
+        task_id: id,
+        uploaded_by: me.id,
+        file_name: file.name,
+        file_url: res.viewUrl,
+        drive_file_id: res.driveFileId,
+        drive_view_url: res.viewUrl,
+      });
+      if (insErr) {
+        toast.error("فشل حفظ المرفق");
+        return;
+      }
+      toast.success("تم رفع الملف ✓");
+      qc.invalidateQueries({ queryKey: ["task-attachments", id] });
+    } catch {
+      toast.error("فشل رفع الملف");
+    } finally {
+      setUploading(false);
+    }
+  }
+
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto">
