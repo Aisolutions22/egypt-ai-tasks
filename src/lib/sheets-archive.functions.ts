@@ -21,7 +21,7 @@ function b64urlFromString(s: string): string {
   return b64urlFromBytes(new TextEncoder().encode(s));
 }
 
-function pemToDer(pem: string): Uint8Array {
+export function pemToDer(pem: string): Uint8Array {
   const body = pem
     .replace(/-----BEGIN [^-]+-----/g, "")
     .replace(/-----END [^-]+-----/g, "")
@@ -32,12 +32,16 @@ function pemToDer(pem: string): Uint8Array {
   return out;
 }
 
-async function getAccessToken(clientEmail: string, privateKeyPem: string): Promise<string> {
+export async function getAccessToken(
+  clientEmail: string,
+  privateKeyPem: string,
+  scope: string,
+): Promise<string> {
   const header = { alg: "RS256", typ: "JWT" };
   const iat = Math.floor(Date.now() / 1000);
   const claims = {
     iss: clientEmail,
-    scope: "https://www.googleapis.com/auth/spreadsheets",
+    scope,
     aud: "https://oauth2.googleapis.com/token",
     iat,
     exp: iat + 3600,
