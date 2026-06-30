@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { sendNewTaskEmail } from "@/lib/email.functions";
+import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
+import { formatArDateTime } from "@/lib/date-ar";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,7 @@ function AddTaskPage() {
   const { data: profiles = [] } = useAllProfiles();
   const employees = profiles.filter((p) => p.is_active && (p.role === "employee" || p.role === "admin"));
   const sendEmail = useServerFn(sendNewTaskEmail);
+  const archiveToSheet = useServerFn(archiveMessageToSheet);
   const qc = useQueryClient();
 
   const { data: settings } = useQuery({
@@ -106,6 +109,19 @@ function AddTaskPage() {
         ids.map((uid) => ({ task_id: t.id, user_id: uid, completion_percentage: 0, employee_status: "new" as const })),
       );
     }
+
+    // Fire-and-forget archive to Google Sheets — never blocks UX
+    const assigneeNames = profiles.filter((p) => ids.includes(p.id)).map((p) => p.full_name).join("، ");
+    archiveToSheet({
+      data: {
+        taskTitle: title.trim(),
+        type: "مهمة جديدة",
+        senderName: me.full_name,
+        content: `التفاصيل: ${description.trim()} | الموعد النهائي: ${new Date(deadlineIso).toLocaleString("ar-EG")} | المسؤول: ${assigneeNames}`,
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
+
 
     // Notifications + email
     await supabase.from("notifications").insert(

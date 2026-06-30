@@ -98,11 +98,15 @@ function TaskDetail() {
     if (error) { toast.error("تعذر الإرسال"); return; }
     // Fire-and-forget archive to Google Sheets — never blocks UX
     const messageText = content.trim();
+    const archiveContent = replyTo
+      ? `رد على "${replyTo.content.slice(0, 60)}": ${messageText}`
+      : messageText;
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
+        type: "رسالة",
         senderName: me.full_name,
-        content: messageText,
+        content: archiveContent,
         whenText: formatArDateTime(new Date()),
       },
     }).catch(() => {});
@@ -127,6 +131,15 @@ function TaskDetail() {
     await supabase.from("tasks")
       .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString() })
       .eq("id", id);
+    archiveToSheet({
+      data: {
+        taskTitle: task?.title ?? "",
+        type: "تم الإغلاق",
+        senderName: me.full_name,
+        content: "",
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
     toast.success("تم الإغلاق ✓");
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
