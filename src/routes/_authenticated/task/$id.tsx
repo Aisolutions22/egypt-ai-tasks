@@ -104,6 +104,8 @@ function TaskDetail() {
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
