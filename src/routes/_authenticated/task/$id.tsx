@@ -424,7 +424,6 @@ function TaskDetail() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,application/pdf"
                 className="hidden"
                 onChange={onPickFile}
               />
@@ -433,11 +432,11 @@ function TaskDetail() {
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                aria-label="إرفاق ملف PDF"
-                title="إرفاق ملف PDF"
+                aria-label="إرفاق ملف"
+                title="إرفاق ملف"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                {uploading ? "جاري الرفع..." : "إرفاق PDF"}
+                <Paperclip className="h-4 w-4" />
+                إرفاق ملف
               </Button>
               <Button onClick={send} disabled={!content.trim()} className="bg-primary text-primary-foreground">
                 <Send className="h-4 w-4" />إرسال
@@ -446,6 +445,40 @@ function TaskDetail() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!pendingFile} onOpenChange={(o) => { if (!o) cancelUpload(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>رفع ملف</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              الملف المختار: <span className="font-medium text-foreground">{pendingFile?.name}</span>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-display-name">اسم الملف على الداشبورد</Label>
+              <Input
+                id="attachment-display-name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                disabled={uploading}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelUpload} disabled={uploading}>إلغاء</Button>
+            <Button
+              onClick={confirmUpload}
+              disabled={uploading || !displayName.trim()}
+              className="bg-primary text-primary-foreground"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {uploading ? "جاري الرفع..." : "رفع"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
