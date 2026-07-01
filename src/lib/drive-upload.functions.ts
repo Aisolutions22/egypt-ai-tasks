@@ -6,6 +6,7 @@ import { getAccessToken } from "./sheets-archive.functions";
 const InputSchema = z.object({
   taskTitle: z.string(),
   fileName: z.string(),
+  displayName: z.string(),
   mimeType: z.string(),
   base64Data: z.string(),
 });
