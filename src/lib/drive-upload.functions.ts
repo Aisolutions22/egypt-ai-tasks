@@ -27,7 +27,9 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         return { ok: false as const, error: "الملف كبير جداً" };
       }
       const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-      const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+      const rawFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+      const folderMatch = rawFolderId?.match(/\/folders\/([a-zA-Z0-9-_]+)/);
+      const folderId = (folderMatch ? folderMatch[1] : rawFolderId)?.trim();
       if (!saJson || !folderId) {
         console.error("[drive-upload] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_DRIVE_FOLDER_ID");
         return { ok: false as const, error: "إعدادات Drive غير مكتملة" };
@@ -43,7 +45,7 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
       const metadata = {
         name: `${data.taskTitle} - ${data.displayName}${fileExtension}`,
-        parents: [folderId.trim()],
+        parents: [folderId],
       };
 
       const boundary = `-------lovable-boundary-${crypto.randomUUID()}`;
