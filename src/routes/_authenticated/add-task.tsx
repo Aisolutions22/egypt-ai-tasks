@@ -132,14 +132,15 @@ function AddTaskPage() {
       })),
     );
 
-    // Email (best-effort)
+    // Email (best-effort) — use server-side RPC that reads profiles.email (populated by backfill),
+    // since supabase.auth.admin.* is not available from the browser client.
     try {
+      const { data: rows } = await supabase.rpc("get_profile_emails");
+      const emailById = new Map<string, string>((rows ?? []).map((r: { id: string; email: string | null }) => [r.id, r.email ?? ""]));
       const assignees = profiles.filter((p) => ids.includes(p.id));
-      const emails = await Promise.all(assignees.map(async (p) => {
-        const { data: u } = await supabase.auth.admin.getUserById?.(p.user_id).catch(() => ({ data: null })) ?? { data: null };
-        return { email: u?.user?.email ?? "", name: p.full_name };
-      }));
-      const valid = emails.filter((e) => e.email);
+      const valid = assignees
+        .map((p) => ({ email: emailById.get(p.id) ?? "", name: p.full_name }))
+        .filter((e) => e.email);
       if (valid.length) await sendEmail({ data: { recipients: valid, task_title: title.trim(), deadline_iso: deadlineIso } });
     } catch { /* silent */ }
 
