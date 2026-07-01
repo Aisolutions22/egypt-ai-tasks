@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { getAccessToken } from "./sheets-archive.functions";
 
 const InputSchema = z.object({
   taskTitle: z.string(),
@@ -18,6 +17,31 @@ function base64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
+async function getDriveAccessTokenViaOAuth(): Promise<string> {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error("Missing GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET / GOOGLE_OAUTH_REFRESH_TOKEN");
+  }
+  const body =
+    `grant_type=refresh_token` +
+    `&refresh_token=${encodeURIComponent(refreshToken)}` +
+    `&client_id=${encodeURIComponent(clientId)}` +
+    `&client_secret=${encodeURIComponent(clientSecret)}`;
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`OAuth token refresh failed ${res.status}: ${text}`);
+  }
+  const json = JSON.parse(text) as { access_token: string };
+  return json.access_token;
+}
+
 export const uploadDriveFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
@@ -26,20 +50,14 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       if (data.base64Data.length * 0.75 > 100 * 1024 * 1024) {
         return { ok: false as const, error: "الملف كبير جداً" };
       }
-      const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
       const rawFolderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
       const folderMatch = rawFolderId?.match(/\/folders\/([a-zA-Z0-9-_]+)/);
       const folderId = (folderMatch ? folderMatch[1] : rawFolderId)?.trim();
-      if (!saJson || !folderId) {
-        console.error("[drive-upload] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_DRIVE_FOLDER_ID");
+      if (!folderId) {
+        console.error("[drive-upload] missing GOOGLE_DRIVE_FOLDER_ID");
         return { ok: false as const, error: "إعدادات Drive غير مكتملة" };
       }
-      const sa = JSON.parse(saJson) as { client_email: string; private_key: string };
-      const accessToken = await getAccessToken(
-        sa.client_email,
-        sa.private_key,
-        "https://www.googleapis.com/auth/drive.file",
-      );
+      const accessToken = await getDriveAccessTokenViaOAuth();
 
       const dotIdx = data.fileName.lastIndexOf(".");
       const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
