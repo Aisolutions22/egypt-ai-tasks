@@ -188,16 +188,36 @@ function TaskDetail() {
     qc.invalidateQueries({ queryKey: ["task", id] });
   }
 
-  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !me) return;
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("الملف أكبر من ٨ ميجا");
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("الملف أكبر من ١٠٠ ميجا");
+      return;
+    }
+    const dot = file.name.lastIndexOf(".");
+    const base = dot > 0 ? file.name.slice(0, dot) : file.name;
+    setPendingFile(file);
+    setDisplayName(base);
+  }
+
+  function cancelUpload() {
+    if (uploading) return;
+    setPendingFile(null);
+    setDisplayName("");
+  }
+
+  async function confirmUpload() {
+    if (!pendingFile || !me) return;
+    const name = displayName.trim();
+    if (!name) {
+      toast.error("أدخل اسم الملف");
       return;
     }
     setUploading(true);
     try {
+      const file = pendingFile;
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -212,7 +232,8 @@ function TaskDetail() {
         data: {
           taskTitle: task?.title ?? "",
           fileName: file.name,
-          mimeType: file.type || "application/pdf",
+          displayName: name,
+          mimeType: file.type || "application/octet-stream",
           base64Data,
         },
       });
@@ -223,7 +244,7 @@ function TaskDetail() {
       const { error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
-        file_name: file.name,
+        file_name: name,
         file_url: res.viewUrl,
         drive_file_id: res.driveFileId,
         drive_view_url: res.viewUrl,
@@ -234,6 +255,8 @@ function TaskDetail() {
       }
       toast.success("تم رفع الملف ✓");
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
+      setPendingFile(null);
+      setDisplayName("");
     } catch {
       toast.error("فشل رفع الملف");
     } finally {
