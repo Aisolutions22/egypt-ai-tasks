@@ -39,8 +39,10 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         "https://www.googleapis.com/auth/drive.file",
       );
 
+      const dotIdx = data.fileName.lastIndexOf(".");
+      const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
       const metadata = {
-        name: `${data.taskTitle} - ${data.fileName}`,
+        name: `${data.taskTitle} - ${data.displayName}${fileExtension}`,
         parents: [folderId.trim()],
       };
 
