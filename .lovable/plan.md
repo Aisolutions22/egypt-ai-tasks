@@ -1,29 +1,30 @@
-## Inspect runtime secrets for `uploadDriveFile`
+## Inspect `GOOGLE_OAUTH_REFRESH_TOKEN` at runtime (read-only, no reveal)
 
-There is no way to read the running Worker's `process.env` without deploying code that reports it. I will add a minimal, auth-gated diagnostic server function, deploy it, invoke it against the live published deployment, and report the raw result.
+Extend the existing diagnostic route `src/routes/api/public/drive-env-diag.ts` to report structural facts about the stored refresh token without exposing its value. Then invoke the live published endpoint and report the results.
+
+### What the route will compute (server-side, on the raw `process.env.GOOGLE_OAUTH_REFRESH_TOKEN` string)
+
+- `startsWith4` — first 4 characters (safe fingerprint, per your request)
+- `endsWith4` — last 4 characters
+- `length` — total character count
+- `newlineCount` — count of `\n` + `\r`
+- `hasWhitespace` — `/\s/.test(v)`
+- `hasDoubleQuote` — includes `"`
+- `hasSingleQuote` — includes `'`
+- `beginsWith_1SlashSlash` — starts with `1//`
+- `containsAnother_1SlashSlash` — `1//` appears again after index 0
+- `looksLikeBase64` — matches `/^[A-Za-z0-9+/=]+$/` (pure base64 alphabet, no `//`, no `-`, no `_`)
+- `hasNonPrintable` — any char with code `< 0x20` (except tab/newline reported above) or `= 0x7F`
+- Bump `DEPLOYMENT_MARKER` to a new value so we can prove the new diagnostic is live
 
 ### Steps
 
-1. Create `src/lib/drive-debug.functions.ts` with a `driveEnvDiag` server function:
-   - `.middleware([requireSupabaseAuth])` so it is not a public endpoint.
-   - Reads `process.env` **inside** the handler (per project rules).
-   - Returns, for each of `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN`, `GOOGLE_DRIVE_FOLDER_ID`:
-     - `present: boolean`
-     - `length: number`
-     - `first4` and `last4` characters (safe fingerprint — enough to tell if the value changed, without revealing it)
-     - `sha256` (hex, first 12 chars) as a stable fingerprint
-   - Also returns a `deploymentMarker` string hardcoded in this file (e.g. a timestamp/UUID I embed at write time). If the invocation returns that marker, the running deployment includes this new code — proving it is the latest build. If the function 404s or returns an older marker, the running deployment is stale.
+1. Edit `src/routes/api/public/drive-env-diag.ts` — add a `describeToken()` helper and include its result only for `GOOGLE_OAUTH_REFRESH_TOKEN`. Existing fingerprint output for the other three secrets is preserved.
+2. Wait for auto-deploy, then GET `/api/public/drive-env-diag` on the published URL.
+3. Report the fields above verbatim to you. No writes, no secret updates, no changes to `uploadDriveFile`.
 
-2. Wait for the automatic deploy, then invoke via `stack_modern--invoke-server-function` against the published URL.
+### Notes
 
-3. Report literal output:
-   - Per-secret `present` / `length` / `first4…last4` / `sha256[0..12]`
-   - The `deploymentMarker` echoed back, confirming whether the live deployment is running the new code (and therefore the latest secrets snapshot).
-
-4. Compare the refresh-token fingerprint to the value you last set (`1//040vZGxF…EyEWDUo9kXFuUmA` → first4 `1//0`, last4 `UmA`) to confirm the Worker actually sees the updated secret, not a cached older one.
-
-### Technical notes
-
-- Secrets in Lovable Cloud / Cloudflare Workers bind at request time; a server function must re-read `process.env` inside the handler. Secret updates take effect on the next request after the Worker picks up the new binding (typically immediate, but this diagnostic will prove it).
-- No values are logged or returned in the clear — only length + 8 chars of fingerprint + a truncated SHA-256. That is sufficient to answer questions 1–5 without leaking secrets.
-- No existing files are modified. Only one new file is added.
+- The token value is never logged, returned in full, or hashed against known values.
+- Only 8 characters total (`startsWith4` + `endsWith4`) are exposed — the minimum needed to answer your questions.
+- No other file is modified.

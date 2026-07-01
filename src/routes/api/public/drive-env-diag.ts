@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const DEPLOYMENT_MARKER = "drive-debug-2026-07-01T18:00:00Z-v1";
+const DEPLOYMENT_MARKER = "drive-debug-2026-07-01T18:20:00Z-v2";
 
 async function fingerprint(v: string): Promise<string> {
   const buf = new TextEncoder().encode(v);
@@ -22,6 +22,35 @@ async function inspect(name: string) {
   };
 }
 
+function describeToken(v: string | undefined) {
+  if (!v) return { present: false as const };
+  const firstIdx = v.indexOf("1//");
+  const secondIdx = firstIdx >= 0 ? v.indexOf("1//", firstIdx + 1) : -1;
+  let nonPrintable = 0;
+  for (let i = 0; i < v.length; i++) {
+    const c = v.charCodeAt(i);
+    if ((c < 0x20 && c !== 0x09 && c !== 0x0a && c !== 0x0d) || c === 0x7f) {
+      nonPrintable++;
+    }
+  }
+  const newlineCount = (v.match(/[\r\n]/g) || []).length;
+  return {
+    present: true as const,
+    startsWith4: v.slice(0, 4),
+    endsWith4: v.slice(-4),
+    length: v.length,
+    newlineCount,
+    hasWhitespace: /\s/.test(v),
+    hasDoubleQuote: v.includes('"'),
+    hasSingleQuote: v.includes("'"),
+    beginsWith_1SlashSlash: v.startsWith("1//"),
+    containsAnother_1SlashSlash: secondIdx !== -1,
+    looksLikeBase64: /^[A-Za-z0-9+/=]+$/.test(v),
+    hasNonPrintable: nonPrintable > 0,
+    nonPrintableCount: nonPrintable,
+  };
+}
+
 export const Route = createFileRoute("/api/public/drive-env-diag")({
   server: {
     handlers: {
@@ -33,11 +62,13 @@ export const Route = createFileRoute("/api/public/drive-env-diag")({
           "GOOGLE_DRIVE_FOLDER_ID",
         ];
         const secrets = await Promise.all(names.map(inspect));
+        const refreshTokenDetails = describeToken(process.env.GOOGLE_OAUTH_REFRESH_TOKEN);
         return new Response(
           JSON.stringify({
             deploymentMarker: DEPLOYMENT_MARKER,
             timestamp: new Date().toISOString(),
             secrets,
+            refreshTokenDetails,
           }),
           { headers: { "content-type": "application/json" } },
         );
