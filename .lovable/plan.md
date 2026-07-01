@@ -1,25 +1,29 @@
-# Fix Google Sheets archive 404
+## Switch Drive uploads to OAuth refresh-token auth
 
-## Root cause
-Server logs show every `append` call hits a 404 from Google. The requested URL contains the full spreadsheet URL where the ID should be:
+Service accounts have no storage quota in personal My Drive (root cause of the 403). Switching Drive uploads to OAuth impersonates a real Google user, so uploads land in that user's Drive quota. Sheets archive keeps using the Service Account — untouched.
 
-```
-/v4/spreadsheets/https://docs.google.com/spreadsheets/d/1UZHbl...pqv0/edit?gid=0
-```
+### Changes
 
-The `GOOGLE_SHEET_ID` secret was saved as the full URL, not the ID segment.
+**1. `src/lib/drive-upload.functions.ts`**
+- Add `getDriveAccessTokenViaOAuth()`:
+  - Reads `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REFRESH_TOKEN` from `process.env`.
+  - POSTs to `https://oauth2.googleapis.com/token` (form-urlencoded) with `grant_type=refresh_token` + the three values.
+  - Returns `access_token`; throws with raw response body on non-OK.
+- In `uploadDriveFile` handler:
+  - Remove `GOOGLE_SERVICE_ACCOUNT_JSON` parsing and the `getAccessToken(sa.client_email, ...)` call.
+  - Drop the `import { getAccessToken }` from `./sheets-archive.functions`.
+  - Call `getDriveAccessTokenViaOAuth()` instead.
+  - Keep everything else identical: folder-ID URL parsing, multipart body, `${taskTitle} - ${displayName}${ext}` naming, try/catch error shape, 100MB guard.
 
-## Fix (pick one — recommended: both)
+**2. `src/lib/sheets-archive.functions.ts`** — untouched.
 
-1. **Update the secret** `GOOGLE_SHEET_ID` to just the ID:
-   `1UZHblRdNvurnNEQHbCqC1IdICtNMjhDWTne7eezpqv0`
+### Secrets
 
-2. **Harden the server function** `src/lib/sheets-archive.functions.ts` to accept either form. Before building the URL, extract the ID:
-   - If the value matches `/spreadsheets/d/([a-zA-Z0-9-_]+)`, use the captured group.
-   - Otherwise use the value as-is, after trimming whitespace.
+Add three secrets:
+- `GOOGLE_OAUTH_CLIENT_ID`
+- `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOOGLE_OAUTH_REFRESH_TOKEN` — will be set to the value you provided (`1//049t9b...`) via `set_secret`, so no form needed for that one. Client ID/Secret will open the secure form for you to paste.
 
-   This makes the integration resilient to whoever sets the secret pasting the URL again.
+### Verification
 
-## Verification
-- Send a test message in a task.
-- Re-check server logs for `[sheets-archive]` — should show no 404, and the row should appear in Sheet1.
+After secrets are configured, trigger an upload from the task page and confirm HTTP 200 from Drive (file appears in the target folder, `webViewLink` returned). If it fails, the raw Google response body will be in the server logs.
