@@ -6,6 +6,7 @@ import { getAccessToken } from "./sheets-archive.functions";
 const InputSchema = z.object({
   taskTitle: z.string(),
   fileName: z.string(),
+  displayName: z.string(),
   mimeType: z.string(),
   base64Data: z.string(),
 });
@@ -22,7 +23,7 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
     try {
-      if (data.base64Data.length * 0.75 > 8 * 1024 * 1024) {
+      if (data.base64Data.length * 0.75 > 100 * 1024 * 1024) {
         return { ok: false as const, error: "الملف كبير جداً" };
       }
       const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
@@ -38,8 +39,10 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         "https://www.googleapis.com/auth/drive.file",
       );
 
+      const dotIdx = data.fileName.lastIndexOf(".");
+      const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
       const metadata = {
-        name: `${data.taskTitle} - ${data.fileName}`,
+        name: `${data.taskTitle} - ${data.displayName}${fileExtension}`,
         parents: [folderId.trim()],
       };
 

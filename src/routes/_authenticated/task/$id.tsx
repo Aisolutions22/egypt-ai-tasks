@@ -7,6 +7,9 @@ import { useMyProfile, useAllProfiles } from "@/lib/use-profile";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, FileText, Loader2, ExternalLink } from "lucide-react";
@@ -101,6 +104,8 @@ function TaskDetail() {
   const [content, setContent] = useState("");
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [displayName, setDisplayName] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
@@ -183,16 +188,36 @@ function TaskDetail() {
     qc.invalidateQueries({ queryKey: ["task", id] });
   }
 
-  async function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file || !me) return;
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("الملف أكبر من ٨ ميجا");
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("الملف أكبر من ١٠٠ ميجا");
+      return;
+    }
+    const dot = file.name.lastIndexOf(".");
+    const base = dot > 0 ? file.name.slice(0, dot) : file.name;
+    setPendingFile(file);
+    setDisplayName(base);
+  }
+
+  function cancelUpload() {
+    if (uploading) return;
+    setPendingFile(null);
+    setDisplayName("");
+  }
+
+  async function confirmUpload() {
+    if (!pendingFile || !me) return;
+    const name = displayName.trim();
+    if (!name) {
+      toast.error("أدخل اسم الملف");
       return;
     }
     setUploading(true);
     try {
+      const file = pendingFile;
       const base64Data = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
@@ -207,7 +232,8 @@ function TaskDetail() {
         data: {
           taskTitle: task?.title ?? "",
           fileName: file.name,
-          mimeType: file.type || "application/pdf",
+          displayName: name,
+          mimeType: file.type || "application/octet-stream",
           base64Data,
         },
       });
@@ -218,7 +244,7 @@ function TaskDetail() {
       const { error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
-        file_name: file.name,
+        file_name: name,
         file_url: res.viewUrl,
         drive_file_id: res.driveFileId,
         drive_view_url: res.viewUrl,
@@ -229,6 +255,8 @@ function TaskDetail() {
       }
       toast.success("تم رفع الملف ✓");
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
+      setPendingFile(null);
+      setDisplayName("");
     } catch {
       toast.error("فشل رفع الملف");
     } finally {
@@ -396,7 +424,6 @@ function TaskDetail() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,application/pdf"
                 className="hidden"
                 onChange={onPickFile}
               />
@@ -405,11 +432,11 @@ function TaskDetail() {
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                aria-label="إرفاق ملف PDF"
-                title="إرفاق ملف PDF"
+                aria-label="إرفاق ملف"
+                title="إرفاق ملف"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                {uploading ? "جاري الرفع..." : "إرفاق PDF"}
+                <Paperclip className="h-4 w-4" />
+                إرفاق ملف
               </Button>
               <Button onClick={send} disabled={!content.trim()} className="bg-primary text-primary-foreground">
                 <Send className="h-4 w-4" />إرسال
@@ -418,6 +445,40 @@ function TaskDetail() {
           </div>
         )}
       </div>
+
+      <Dialog open={!!pendingFile} onOpenChange={(o) => { if (!o) cancelUpload(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>رفع ملف</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="text-xs text-muted-foreground">
+              الملف المختار: <span className="font-medium text-foreground">{pendingFile?.name}</span>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-display-name">اسم الملف على الداشبورد</Label>
+              <Input
+                id="attachment-display-name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                disabled={uploading}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelUpload} disabled={uploading}>إلغاء</Button>
+            <Button
+              onClick={confirmUpload}
+              disabled={uploading || !displayName.trim()}
+              className="bg-primary text-primary-foreground"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {uploading ? "جاري الرفع..." : "رفع"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
