@@ -23,7 +23,7 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
     try {
-      if (data.base64Data.length * 0.75 > 8 * 1024 * 1024) {
+      if (data.base64Data.length * 0.75 > 100 * 1024 * 1024) {
         return { ok: false as const, error: "الملف كبير جداً" };
       }
       const saJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
