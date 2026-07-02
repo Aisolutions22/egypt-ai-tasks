@@ -90,7 +90,7 @@ export const archiveMessageToSheet = createServerFn({ method: "POST" })
       const sa = JSON.parse(saJson) as { client_email: string; private_key: string };
       const accessToken = await getAccessToken(sa.client_email, sa.private_key, "https://www.googleapis.com/auth/spreadsheets");
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A:F:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
       const res = await fetch(url, {
         method: "POST",
         headers: {
