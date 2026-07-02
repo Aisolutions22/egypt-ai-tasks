@@ -122,6 +122,7 @@ function TaskDetail() {
       task_id: id, sender_id: me.id, content: content.trim(), reply_to_id: replyTo?.id ?? null,
     });
     if (error) { toast.error("تعذر الإرسال"); return; }
+    qc.invalidateQueries({ queryKey: ["task-messages", id] });
     // Fire-and-forget archive to Google Sheets — never blocks UX
     const messageText = content.trim();
     const archiveContent = replyTo
