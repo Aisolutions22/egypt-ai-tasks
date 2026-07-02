@@ -15,34 +15,43 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
     try {
+      const dotIdx = data.fileName.lastIndexOf(".");
+      const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
+      const companyName = data.taskTitle;
+
+      const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
+      const scriptSecret = process.env.GOOGLE_APPS_SCRIPT_SECRET;
+
+      console.log("[drive-upload][diag] upload started", {
+        displayName: data.displayName,
+        companyName,
+        extension: fileExtension,
+        mimeType: data.mimeType,
+        base64Length: data.base64Data.length,
+        finalFileName: data.fileName,
+        hasScriptUrl: Boolean(scriptUrl),
+        hasScriptSecret: Boolean(scriptSecret),
+      });
+
       if (data.base64Data.length * 0.75 > 100 * 1024 * 1024) {
         return { ok: false as const, error: "الملف كبير جداً" };
       }
 
-      const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
-      const scriptSecret = process.env.GOOGLE_APPS_SCRIPT_SECRET;
       if (!scriptUrl || !scriptSecret) {
         console.error("[drive-upload] missing GOOGLE_APPS_SCRIPT_URL / GOOGLE_APPS_SCRIPT_SECRET");
         return { ok: false as const, error: "إعدادات Drive غير مكتملة" };
       }
 
-      const dotIdx = data.fileName.lastIndexOf(".");
-      const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
-      const companyName = data.taskTitle;
-
-      let urlHostPath = scriptUrl;
+      let urlOrigin = "";
+      let urlPathname = scriptUrl;
       try {
         const u = new URL(scriptUrl);
-        urlHostPath = `${u.origin}${u.pathname}`;
+        urlOrigin = u.origin;
+        urlPathname = u.pathname;
       } catch {}
-      console.log("[drive-upload][diag] request", {
-        url: urlHostPath,
-        fileName: data.fileName,
-        displayName: data.displayName,
-        mimeType: data.mimeType,
-        companyName,
-        extension: fileExtension,
-        base64Length: data.base64Data.length,
+      console.log("[drive-upload][diag] before fetch", {
+        urlOrigin,
+        urlPathname,
       });
 
       const res = await fetch(scriptUrl, {
@@ -68,7 +77,12 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       console.log("[drive-upload][diag] raw body", text.slice(0, 2000));
 
       if (!res.ok) {
-        console.error(`[drive-upload] apps-script ${res.status}: ${text}`);
+        console.error("[drive-upload][diag] non-200", {
+          status: res.status,
+          statusText: res.statusText,
+          headers: Object.fromEntries(res.headers as unknown as Iterable<[string, string]>),
+          rawBody: text.slice(0, 2000),
+        });
         return { ok: false as const, error: `upload ${res.status}` };
       }
 
@@ -83,10 +97,24 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         return { ok: false as const, error: "استجابة غير صالحة من خادم الرفع" };
       }
 
+      console.log("[drive-upload][diag] parsed json", {
+        ok: json.ok,
+        error: json.error,
+        errorCode: json.errorCode,
+        fileId: json.fileId,
+        viewUrl: json.viewUrl,
+        fileName: json.fileName,
+      });
+
       if (!json.ok) {
         console.error("[drive-upload][diag] apps-script ok:false", json);
         return { ok: false as const, error: json.error || "فشل الرفع" };
       }
+
+      console.log("[drive-upload][diag] upload completed successfully", {
+        fileId: json.fileId,
+        viewUrl: json.viewUrl,
+      });
 
       return {
         ok: true as const,
@@ -103,4 +131,5 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       return { ok: false as const, error: String(err) };
     }
   });
+
 
