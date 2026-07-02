@@ -30,6 +30,21 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
       const companyName = data.taskTitle;
 
+      let urlHostPath = scriptUrl;
+      try {
+        const u = new URL(scriptUrl);
+        urlHostPath = `${u.origin}${u.pathname}`;
+      } catch {}
+      console.log("[drive-upload][diag] request", {
+        url: urlHostPath,
+        fileName: data.fileName,
+        displayName: data.displayName,
+        mimeType: data.mimeType,
+        companyName,
+        extension: fileExtension,
+        base64Length: data.base64Data.length,
+      });
+
       const res = await fetch(scriptUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,7 +58,15 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         }),
       });
 
+      console.log("[drive-upload][diag] response headers", {
+        status: res.status,
+        statusText: res.statusText,
+        contentType: res.headers.get("content-type"),
+      });
+
       const text = await res.text();
+      console.log("[drive-upload][diag] raw body", text.slice(0, 2000));
+
       if (!res.ok) {
         console.error(`[drive-upload] apps-script ${res.status}: ${text}`);
         return { ok: false as const, error: `upload ${res.status}` };
@@ -52,13 +75,16 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       let json: { ok: boolean; fileId?: string; viewUrl?: string; fileName?: string; error?: string; errorCode?: string };
       try {
         json = JSON.parse(text);
-      } catch {
-        console.error(`[drive-upload] non-JSON response: ${text}`);
+      } catch (parseErr) {
+        console.error("[drive-upload][diag] JSON parse error", {
+          message: (parseErr as Error).message,
+          bodySnippet: text.slice(0, 500),
+        });
         return { ok: false as const, error: "استجابة غير صالحة من خادم الرفع" };
       }
 
       if (!json.ok) {
-        console.error(`[drive-upload] apps-script error ${json.errorCode ?? ""}: ${json.error ?? ""}`);
+        console.error("[drive-upload][diag] apps-script ok:false", json);
         return { ok: false as const, error: json.error || "فشل الرفع" };
       }
 
@@ -68,7 +94,13 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         viewUrl: json.viewUrl!,
       };
     } catch (err) {
-      console.error("[drive-upload] error:", err);
+      const e = err as Error;
+      console.error("[drive-upload][diag] thrown exception", {
+        name: e?.name,
+        message: e?.message,
+        stack: e?.stack,
+      });
       return { ok: false as const, error: String(err) };
     }
   });
+
