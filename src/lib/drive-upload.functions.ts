@@ -10,28 +10,27 @@ const InputSchema = z.object({
   base64Data: z.string(),
 });
 
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+
 export const uploadDriveFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InputSchema.parse(data))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     try {
       const dotIdx = data.fileName.lastIndexOf(".");
       const fileExtension = dotIdx >= 0 ? data.fileName.slice(dotIdx) : "";
-      const companyName = data.taskTitle;
+
+      const { data: settings } = await context.supabase
+        .from("app_settings")
+        .select("company_name")
+        .eq("id", 1)
+        .single();
+      const companyName =
+        (settings as { company_name?: string } | null)?.company_name ??
+        "Ai Tasks Solutions";
 
       const scriptUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
       const scriptSecret = process.env.GOOGLE_APPS_SCRIPT_SECRET;
-
-      console.log("[drive-upload][diag] upload started", {
-        displayName: data.displayName,
-        companyName,
-        extension: fileExtension,
-        mimeType: data.mimeType,
-        base64Length: data.base64Data.length,
-        finalFileName: data.fileName,
-        hasScriptUrl: Boolean(scriptUrl),
-        hasScriptSecret: Boolean(scriptSecret),
-      });
 
       if (data.base64Data.length * 0.75 > 100 * 1024 * 1024) {
         return { ok: false as const, error: "الملف كبير جداً" };
@@ -42,39 +41,49 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         return { ok: false as const, error: "إعدادات Drive غير مكتملة" };
       }
 
-      let urlOrigin = "";
-      let urlPathname = scriptUrl;
+      const body = JSON.stringify({
+        secret: scriptSecret,
+        displayName: data.displayName,
+        companyName,
+        extension: fileExtension,
+        mimeType: data.mimeType,
+        base64Data: data.base64Data,
+      });
+
+      const doFetch = async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30_000);
+        try {
+          return await fetch(scriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body,
+            signal: controller.signal,
+          });
+        } finally {
+          clearTimeout(timeout);
+        }
+      };
+
+      let res: Response;
       try {
-        const u = new URL(scriptUrl);
-        urlOrigin = u.origin;
-        urlPathname = u.pathname;
-      } catch {}
-      console.log("[drive-upload][diag] before fetch", {
-        urlOrigin,
-        urlPathname,
-      });
-
-      const res = await fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret: scriptSecret,
-          displayName: data.displayName,
-          companyName,
-          extension: fileExtension,
-          mimeType: data.mimeType,
-          base64Data: data.base64Data,
-        }),
-      });
-
-      console.log("[drive-upload][diag] response headers", {
-        status: res.status,
-        statusText: res.statusText,
-        contentType: res.headers.get("content-type"),
-      });
+        res = await doFetch();
+        if (RETRYABLE_STATUSES.has(res.status)) {
+          try {
+            res = await doFetch();
+          } catch {
+            return { ok: false as const, error: "فشل رفع الملف، حاول مرة أخرى" };
+          }
+        }
+      } catch {
+        try {
+          res = await doFetch();
+        } catch {
+          return { ok: false as const, error: "فشل رفع الملف، حاول مرة أخرى" };
+        }
+      }
 
       const text = await res.text();
-      console.log("[drive-upload][diag] raw body", text.slice(0, 2000));
 
       if (!res.ok) {
         console.error("[drive-upload][diag] non-200", {
@@ -97,24 +106,10 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
         return { ok: false as const, error: "استجابة غير صالحة من خادم الرفع" };
       }
 
-      console.log("[drive-upload][diag] parsed json", {
-        ok: json.ok,
-        error: json.error,
-        errorCode: json.errorCode,
-        fileId: json.fileId,
-        viewUrl: json.viewUrl,
-        fileName: json.fileName,
-      });
-
       if (!json.ok) {
         console.error("[drive-upload][diag] apps-script ok:false", json);
         return { ok: false as const, error: json.error || "فشل الرفع" };
       }
-
-      console.log("[drive-upload][diag] upload completed successfully", {
-        fileId: json.fileId,
-        viewUrl: json.viewUrl,
-      });
 
       return {
         ok: true as const,
@@ -131,5 +126,3 @@ export const uploadDriveFile = createServerFn({ method: "POST" })
       return { ok: false as const, error: String(err) };
     }
   });
-
-
