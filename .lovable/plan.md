@@ -1,6 +1,35 @@
-1. Update the Lovable secret `GOOGLE_APPS_SCRIPT_URL` to the new Apps Script deployment URL:
-   `https://script.google.com/macros/s/AKfycbwyzqSsx2swk4E9nDglFE4enl1UdCgAjQFfUmFZ28DO9uyGGspK0klyVKoq0KMk1Xp0/exec`
-2. Build the project so the server function picks up the new secret value.
-3. After the user performs one manual file upload, pull the latest `[drive-upload][diag]` server-function logs and report the exact HTTP status and raw response body from the Apps Script call without summarizing.
+## Findings from server logs
 
-No code, flow, business logic, or database changes will be made. The diagnostics already in `src/lib/drive-upload.functions.ts` remain untouched.
+`archiveMessageToSheet` **is being triggered** — 6 calls in the last hour, all failing at the same guard:
+
+```
+[2026-07-02T02:47:22.569Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+[2026-07-02T02:44:55.002Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+[2026-07-02T02:28:09.776Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+[2026-07-02T02:27:38.620Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+[2026-07-02T02:25:15.285Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+[2026-07-02T02:24:40.137Z] [error] [sheets-archive] missing GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_SHEET_ID
+```
+
+There is no HTTP call to Google, no non-200, no thrown exception — every attempt exits on the missing-secret early return. The function never reaches `fetch` or `getAccessToken`.
+
+## Root cause
+
+Project secrets currently configured:
+- GOOGLE_APPS_SCRIPT_SECRET
+- GOOGLE_APPS_SCRIPT_URL
+- GOOGLE_SHEET_ID ✓
+- RESEND_API_KEY
+- SEED_OWNER_TOKEN
+- LOVABLE_API_KEY
+
+**`GOOGLE_SERVICE_ACCOUNT_JSON` is not set.** `GOOGLE_SHEET_ID` is present, so the guard trips solely on the missing service-account JSON. Without it, `sheets-archive.functions.ts` cannot mint an OAuth token for the Sheets API and returns `{ ok: false }` immediately.
+
+Note: the recent drive-upload migration switched to the Apps Script URL + shared secret (`GOOGLE_APPS_SCRIPT_URL` / `GOOGLE_APPS_SCRIPT_SECRET`), but `sheets-archive.functions.ts` still uses the direct Sheets API path (service account JWT → `sheets.googleapis.com`). So it needs the service-account credentials, not the Apps Script secrets.
+
+## Options to unblock
+
+1. **Add the `GOOGLE_SERVICE_ACCOUNT_JSON` secret** (full JSON key for a service account with edit access on the sheet). The existing code will then work unchanged.
+2. **Rewrite `sheets-archive.functions.ts` to POST to the Apps Script** (same pattern as drive-upload), reusing `GOOGLE_APPS_SCRIPT_URL` + `GOOGLE_APPS_SCRIPT_SECRET`. No new secret required, and the Apps Script would need a matching `doPost` branch that appends the row.
+
+Which route do you want?
