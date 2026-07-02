@@ -16,14 +16,17 @@ export type Database = {
     Tables: {
       app_settings: {
         Row: {
+          company_name: string
           default_deadline_days: number
           id: number
         }
         Insert: {
+          company_name?: string
           default_deadline_days?: number
           id?: number
         }
         Update: {
+          company_name?: string
           default_deadline_days?: number
           id?: number
         }
