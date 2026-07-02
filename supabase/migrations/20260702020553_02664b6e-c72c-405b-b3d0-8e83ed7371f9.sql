@@ -1,0 +1,1 @@
+ALTER TABLE public.app_settings ADD COLUMN IF NOT EXISTS company_name text NOT NULL DEFAULT 'Ai Tasks Solutions';
