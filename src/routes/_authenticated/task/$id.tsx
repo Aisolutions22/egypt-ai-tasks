@@ -184,7 +184,7 @@ function TaskDetail() {
         taskDetails: "",
         type: "تم الإغلاق",
         senderName: me.full_name,
-        content: "",
+        content: `تم الإغلاق في ${formatArDateTime(new Date())}`,
         whenText: formatArDateTime(new Date()),
       },
     }).catch(() => {});
@@ -204,7 +204,7 @@ function TaskDetail() {
         taskDetails: "",
         type: "تم الإغلاق متأخراً",
         senderName: me.full_name,
-        content: "",
+        content: `تم الإغلاق متأخراً في ${formatArDateTime(new Date())}`,
         whenText: formatArDateTime(new Date()),
       },
     }).catch(() => {});
