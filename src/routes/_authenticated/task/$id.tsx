@@ -363,7 +363,14 @@ function TaskDetail() {
           <Link to="/dashboard"><ArrowRight className="h-4 w-4" />رجوع</Link>
         </Button>
         <h1 className="text-lg md:text-xl font-bold flex-1 min-w-0">{task.title}</h1>
-        <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: s.color, color: s.textOn }}>
+        <span
+          key={`badge-${closingPulse}`}
+          className={cn(
+            "px-2.5 py-1 rounded-full text-xs font-bold transition-transform",
+            closingPulse > 0 && "animate-scale-in",
+          )}
+          style={{ background: s.color, color: s.textOn }}
+        >
           {s.label}
         </span>
         {isAdmin && !closed && (
