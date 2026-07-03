@@ -277,16 +277,20 @@ function TaskDetail() {
     if (!url || !url.toLowerCase().startsWith("http")) { toast.error("أدخل رابطاً صحيحاً"); return; }
     setUploading(true);
     try {
-      const { error: insErr } = await supabase.from("task_attachments").insert({
+      const { data: inserted, error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
         file_name: name,
         file_url: url,
         drive_file_id: null,
         drive_view_url: url,
-      });
+      }).select("id").single();
       if (insErr) { toast.error("فشل حفظ المرفق"); return; }
       toast.success("تم رفع الملف ✓");
+      if (inserted?.id) {
+        setHighlightAttId(inserted.id);
+        setTimeout(() => setHighlightAttId(null), 1200);
+      }
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
       setLinkUrl("");
       setDisplayName("");
