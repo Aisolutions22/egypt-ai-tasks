@@ -466,7 +466,7 @@ function TaskDetail() {
                         {m.content}
                       </div>
                       <button
-                        className="text-[11px] text-muted-foreground hover:text-primary inline-flex items-center gap-1 mt-1"
+                        className="text-[11px] text-muted-foreground hover:text-primary inline-flex items-center gap-1 mt-1 transition-transform duration-150 hover:scale-105 active:scale-95"
                         onClick={() => setReplyTo(m)}
                       >
                         <Reply className="h-3 w-3" />رد
