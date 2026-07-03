@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
-import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, FileText, Loader2, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, Link as LinkIcon, FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
@@ -106,6 +106,9 @@ function TaskDetail() {
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [attachMode, setAttachMode] = useState<"file" | "link">("file");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
