@@ -159,15 +159,34 @@ function TaskDetail() {
   async function markDone() {
     if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
-    const wasLate = task?.status === "late";
     await supabase.from("tasks")
-      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: wasLate })
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: false })
       .eq("id", id);
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
         taskDetails: "",
-        type: wasLate ? "تم الإغلاق متأخراً" : "تم الإغلاق",
+        type: "تم الإغلاق",
+        senderName: me.full_name,
+        content: "",
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
+    toast.success("تم الإغلاق ✓");
+    qc.invalidateQueries({ queryKey: ["task", id] });
+    qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+  }
+  async function markDoneLate() {
+    if (!me) return;
+    if (!confirm("هل أنت متأكد من إغلاق هذه المهمة كمتأخرة؟")) return;
+    await supabase.from("tasks")
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: true })
+      .eq("id", id);
+    archiveToSheet({
+      data: {
+        taskTitle: task?.title ?? "",
+        taskDetails: "",
+        type: "تم الإغلاق متأخراً",
         senderName: me.full_name,
         content: "",
         whenText: formatArDateTime(new Date()),
@@ -325,9 +344,20 @@ function TaskDetail() {
             <Button size="sm" onClick={markDone} className="bg-success text-white hover:opacity-90">
               <Check className="h-4 w-4" />Done
             </Button>
-            <Button size="sm" onClick={markLate} variant="destructive">
-              <Flag className="h-4 w-4" />متأخر
-            </Button>
+            {task.status === "late" ? (
+              <Button
+                size="sm"
+                onClick={markDoneLate}
+                className="text-white hover:opacity-90"
+                style={{ backgroundColor: "#D97706" }}
+              >
+                <Flag className="h-4 w-4" />انتهت متأخر
+              </Button>
+            ) : (
+              <Button size="sm" onClick={markLate} variant="destructive">
+                <Flag className="h-4 w-4" />متأخر
+              </Button>
+            )}
           </div>
         )}
       </div>
