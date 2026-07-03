@@ -8,7 +8,7 @@ import { TaskCard, type TaskCardData } from "@/components/task-card";
 import { AvatarCircle } from "@/components/avatar-circle";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2, ChevronDown, Inbox } from "lucide-react";
+import { Plus, ListTodo, Clock, AlertTriangle, CheckCircle2, Inbox } from "lucide-react";
 import { TaskPieChart } from "@/components/task-pie-chart";
 import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
@@ -155,7 +155,7 @@ function Dashboard() {
         filter === "all" ? (
           <AnalyticsView profiles={profiles} allTasks={allTasksRaw} />
         ) : (
-          <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
+          <TaskFlatGrid tasks={tasks} profileById={profileById} disableLink={isOwner} />
         )
       ) : (
         <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me ?? undefined} isOwner={isOwner} pieSize={pieSize} />
@@ -185,61 +185,22 @@ function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: t
   );
 }
 
-function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }: {
-  tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
-}) {
-  const employees = profiles.filter((p) => p.role === "employee");
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  if (employees.length === 0) {
-    return (
-      <div className="glass rounded-2xl p-10 text-center">
-        <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-foreground font-medium">لا يوجد موظفون بعد</p>
-        <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
-          <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة موظف</Link>
-        </Button>
-      </div>
-    );
-  }
-  function toggle(id: string) {
-    setCollapsed((s) => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  }
-  return (
-    <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
-      {employees.map((emp) => {
-        const empTasks = tasks.filter((t) => t.task_assignments.some((a) => a.user_id === emp.id));
-        const isCollapsed = collapsed.has(emp.id);
-        return (
-          <div key={emp.id} className="glass rounded-2xl p-3 space-y-3">
-            <button
-              type="button"
-              onClick={() => toggle(emp.id)}
-              className="w-full flex items-center gap-3 px-1 text-right hover:opacity-80 active:scale-[0.98] transition"
-              aria-expanded={!isCollapsed}
-            >
-              <AvatarCircle name={emp.full_name} color={emp.color} avatarUrl={emp.avatar_url} size={56} />
-              <div className="leading-tight flex-1 min-w-0">
-                <div className="font-bold text-sm truncate text-foreground">{emp.full_name}</div>
-                <div className="text-[11px] text-muted-foreground">{toArabicDigits(empTasks.length)} مهمة</div>
-              </div>
-              <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isCollapsed && "-rotate-90")} />
 
-            </button>
-            {!isCollapsed && (
-              <div className="space-y-2">
-                {empTasks.length === 0 && (
-                  <div className="text-xs text-muted-foreground px-1">لا مهام</div>
-                )}
-                {empTasks.map((t) => (
-                  <TaskCard key={t.id} task={toCard(t, emp.color)} disableLink={disableLink} />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+function TaskFlatGrid({ tasks, profileById, disableLink }: {
+  tasks: TaskRow[]; profileById: Map<string, Profile>; disableLink?: boolean;
+}) {
+  return (
+    <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
+      {tasks.map((t) => (
+        <TaskCard key={t.id} task={toCard(t, taskColor(t, profileById))} disableLink={disableLink} />
+      ))}
     </div>
   );
+}
+
+function taskColor(t: TaskRow, profileById: Map<string, Profile>): string {
+  const firstAssignee = t.task_assignments[0]?.user_id;
+  return firstAssignee ? (profileById.get(firstAssignee)?.color ?? "#64748B") : "#64748B";
 }
 
 function PersonalView({ allTasks, tasks, me, isOwner, pieSize }: {
@@ -277,7 +238,7 @@ function toCard(t: TaskRow, color: string): TaskCardData {
 }
 
 function AnalyticsView({ profiles, allTasks }: { profiles: Profile[]; allTasks: TaskRow[] }) {
-  const employees = profiles.filter((p) => p.role === "employee");
+  const employees = profiles.filter((p) => p.role === "employee" && p.is_active);
   if (employees.length === 0) {
     return (
       <div className="glass rounded-2xl p-10 text-center">
