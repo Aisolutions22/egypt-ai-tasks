@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const InputSchema = z.object({
   taskTitle: z.string(),
   taskDetails: z.string().optional().default(""),
-  type: z.enum(["مهمة جديدة", "رسالة", "تم الإغلاق"]),
+  type: z.enum(["مهمة جديدة", "رسالة", "تم الإغلاق", "تم الإغلاق متأخراً"]),
   senderName: z.string(),
   content: z.string(),
   whenText: z.string(),
