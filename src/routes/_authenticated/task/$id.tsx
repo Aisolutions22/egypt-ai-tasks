@@ -15,6 +15,7 @@ import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, Link as LinkIcon, FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
 import { uploadDriveFile } from "@/lib/drive-upload.functions";
 
