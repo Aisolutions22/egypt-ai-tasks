@@ -110,6 +110,8 @@ function TaskDetail() {
   const [attachMode, setAttachMode] = useState<"file" | "link">("file");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [closingPulse, setClosingPulse] = useState(0);
+  const [highlightAttId, setHighlightAttId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
