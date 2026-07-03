@@ -14,6 +14,7 @@ import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
