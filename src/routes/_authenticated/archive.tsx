@@ -36,7 +36,7 @@ function ArchivePage() {
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const [q, setQ] = useState("");
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["archive-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
