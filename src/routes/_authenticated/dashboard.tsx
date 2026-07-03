@@ -13,6 +13,7 @@ import { TaskPieChart } from "@/components/task-pie-chart";
 import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
