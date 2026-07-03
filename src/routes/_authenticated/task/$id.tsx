@@ -159,15 +159,34 @@ function TaskDetail() {
   async function markDone() {
     if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
-    const wasLate = task?.status === "late";
     await supabase.from("tasks")
-      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: wasLate })
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: false })
       .eq("id", id);
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
         taskDetails: "",
-        type: wasLate ? "تم الإغلاق متأخراً" : "تم الإغلاق",
+        type: "تم الإغلاق",
+        senderName: me.full_name,
+        content: "",
+        whenText: formatArDateTime(new Date()),
+      },
+    }).catch(() => {});
+    toast.success("تم الإغلاق ✓");
+    qc.invalidateQueries({ queryKey: ["task", id] });
+    qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
+  }
+  async function markDoneLate() {
+    if (!me) return;
+    if (!confirm("هل أنت متأكد من إغلاق هذه المهمة كمتأخرة؟")) return;
+    await supabase.from("tasks")
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: true })
+      .eq("id", id);
+    archiveToSheet({
+      data: {
+        taskTitle: task?.title ?? "",
+        taskDetails: "",
+        type: "تم الإغلاق متأخراً",
         senderName: me.full_name,
         content: "",
         whenText: formatArDateTime(new Date()),
