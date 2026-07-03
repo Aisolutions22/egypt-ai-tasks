@@ -235,8 +235,8 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
   );
 }
 
-function PersonalView({ allTasks, tasks, me, isOwner }: {
-  allTasks: TaskRow[]; tasks: TaskRow[]; me: Profile | undefined; isOwner: boolean;
+function PersonalView({ allTasks, tasks, me, isOwner, pieSize }: {
+  allTasks: TaskRow[]; tasks: TaskRow[]; me: Profile | undefined; isOwner: boolean; pieSize: number;
 }) {
   if (!me) return null;
   const mine = allTasks.filter((t) => t.task_assignments.some((a) => a.user_id === me.id));
@@ -247,7 +247,7 @@ function PersonalView({ allTasks, tasks, me, isOwner }: {
     <>
       <div className="glass rounded-2xl p-5">
         <h2 className="text-lg font-bold mb-3">نظرة عامة</h2>
-        <TaskPieChart done={myDone} inProgress={myInProgress} late={myLate} size={120} showLegend />
+        <TaskPieChart done={myDone} inProgress={myInProgress} late={myLate} size={pieSize} showLegend />
       </div>
       <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
         {tasks
