@@ -40,7 +40,7 @@ function ArchivePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, created_at, deadline, closed_by, closed_at, task_assignments(user_id)")
+        .select("id, title, created_at, deadline, closed_by, closed_at, finished_late, task_assignments(user_id)")
         .eq("status", "closed")
         .order("closed_at", { ascending: false });
       if (error) throw error;
@@ -92,7 +92,17 @@ function ArchivePage() {
                     </div>
                   )}
                 </div>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Done</span>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground">Done</span>
+                  {t.finished_late && (
+                    <span
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: "#D97706", color: "#fff" }}
+                    >
+                      ⚑ انتهت متأخرة
+                    </span>
+                  )}
+                </div>
               </>
             );
             return isOwner ? (
