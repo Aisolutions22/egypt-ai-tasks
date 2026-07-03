@@ -447,13 +447,7 @@ function TaskDetail() {
                 const replied = m.reply_to_id ? messages.find((x) => x.id === m.reply_to_id) : null;
                 return (
                   <div key={`m-${m.id}`} className="flex gap-2.5 animate-fade-in transition-all duration-200">
-                    <button
-                      type="button"
-                      onClick={() => setReplyTo(m)}
-                      aria-label="رد"
-                      className="sr-only"
-                    />
-                    {/* reply hidden trigger removed above — real reply button stays below */}
+
                     <AvatarCircle name={sender?.full_name ?? "؟"} color={sender?.color ?? "#999"} avatarUrl={sender?.avatar_url} size={56} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
