@@ -482,6 +482,17 @@ function TaskDetail() {
                 <Paperclip className="h-4 w-4" />
                 إرفاق ملف
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openLinkDialog}
+                disabled={uploading}
+                aria-label="إرفاق رابط"
+                title="إرفاق رابط"
+              >
+                <LinkIcon className="h-4 w-4" />
+                إرفاق رابط
+              </Button>
               <Button onClick={send} disabled={!content.trim()} className="bg-primary text-primary-foreground">
                 <Send className="h-4 w-4" />إرسال
               </Button>
@@ -519,6 +530,48 @@ function TaskDetail() {
             >
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {uploading ? "جاري الرفع..." : "رفع"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={linkDialogOpen} onOpenChange={(o) => { if (!o) cancelUpload(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إرفاق رابط</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-link-url">الرابط</Label>
+              <Input
+                id="attachment-link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://..."
+                disabled={uploading}
+                autoFocus
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-link-name">اسم الملف على الداشبورد</Label>
+              <Input
+                id="attachment-link-name"
+                value={attachMode === "link" ? displayName : ""}
+                onChange={(e) => setDisplayName(e.target.value)}
+                disabled={uploading}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelUpload} disabled={uploading}>إلغاء</Button>
+            <Button
+              onClick={confirmLink}
+              disabled={uploading || !displayName.trim() || !linkUrl.trim()}
+              className="bg-primary text-primary-foreground"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {uploading ? "جاري الحفظ..." : "حفظ"}
             </Button>
           </DialogFooter>
         </DialogContent>
