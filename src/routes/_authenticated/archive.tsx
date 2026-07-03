@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAllProfiles, useMyProfile } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { AvatarCircle } from "@/components/avatar-circle";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { Search, ArchiveX } from "lucide-react";
 
