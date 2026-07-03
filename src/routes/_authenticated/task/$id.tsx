@@ -133,7 +133,13 @@ function TaskDetail() {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, []);
 
-  if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
+  if (!task) return (
+    <div className="space-y-4 max-w-4xl mx-auto">
+      <Skeleton className="h-16 rounded-2xl" />
+      <Skeleton className="h-24 rounded-2xl" />
+      <Skeleton className="h-64 rounded-2xl" />
+    </div>
+  );
 
   const s = STATUS_META[task.status as TaskStatus];
   const closed = task.status === "closed";
