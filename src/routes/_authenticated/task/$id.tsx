@@ -198,6 +198,7 @@ function TaskDetail() {
       },
     }).catch(() => {});
     toast.success("تم الإغلاق ✓");
+    setClosingPulse((n) => n + 1);
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
   }
