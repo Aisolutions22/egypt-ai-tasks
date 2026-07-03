@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams, redirect } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,6 +113,22 @@ function TaskDetail() {
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
   const myAssignment = task?.task_assignments?.find((a: { user_id: string }) => a.user_id === me?.id);
+
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const timeline = useMemo(() => {
+    return ([
+      ...messages.map((m) => ({ kind: "msg" as const, created_at: m.created_at, msg: m })),
+      ...attachments.map((a) => ({ kind: "att" as const, created_at: a.created_at, att: a })),
+    ] as TimelineItem[]).sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }, [messages, attachments]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [timeline.length]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "auto" });
+  }, []);
 
   if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
 
@@ -405,12 +421,7 @@ function TaskDetail() {
           {messages.length === 0 && attachments.length === 0 && (
             <div className="text-sm text-muted-foreground">لا توجد رسائل بعد</div>
           )}
-          {([
-            ...messages.map((m) => ({ kind: "msg" as const, created_at: m.created_at, msg: m })),
-            ...attachments.map((a) => ({ kind: "att" as const, created_at: a.created_at, att: a })),
-          ] as TimelineItem[])
-            .sort((a, b) => a.created_at.localeCompare(b.created_at))
-            .map((item) => {
+          {timeline.map((item) => {
               if (item.kind === "msg") {
                 const m = item.msg;
                 const sender = profileById.get(m.sender_id);
@@ -474,6 +485,7 @@ function TaskDetail() {
                 </div>
               );
             })}
+          <div ref={bottomRef} />
         </div>
 
         {!closed && (
