@@ -344,9 +344,20 @@ function TaskDetail() {
             <Button size="sm" onClick={markDone} className="bg-success text-white hover:opacity-90">
               <Check className="h-4 w-4" />Done
             </Button>
-            <Button size="sm" onClick={markLate} variant="destructive">
-              <Flag className="h-4 w-4" />متأخر
-            </Button>
+            {task.status === "late" ? (
+              <Button
+                size="sm"
+                onClick={markDoneLate}
+                className="text-white hover:opacity-90"
+                style={{ backgroundColor: "#D97706" }}
+              >
+                <Flag className="h-4 w-4" />انتهت متأخر
+              </Button>
+            ) : (
+              <Button size="sm" onClick={markLate} variant="destructive">
+                <Flag className="h-4 w-4" />متأخر
+              </Button>
+            )}
           </div>
         )}
       </div>
