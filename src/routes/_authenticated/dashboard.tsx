@@ -126,7 +126,7 @@ function Dashboard() {
       {canSeeAll && (
         <div className="glass rounded-2xl p-5">
           <h2 className="text-lg font-bold mb-3">نظرة عامة</h2>
-          <TaskPieChart done={done} inProgress={pieInProgress} late={late} size={120} showLegend />
+          <TaskPieChart done={done} inProgress={pieInProgress} late={late} size={pieSize} showLegend />
         </div>
       )}
 
