@@ -479,14 +479,17 @@ function TaskDetail() {
               const up = profileById.get(a.uploaded_by);
               const href = a.drive_view_url ?? "";
               return (
-                <div key={`a-${a.id}`} className="flex gap-2.5">
+                <div key={`a-${a.id}`} className="flex gap-2.5 animate-fade-in transition-all duration-200">
                   <AvatarCircle name={up?.full_name ?? "؟"} color={up?.color ?? "#999"} avatarUrl={up?.avatar_url} size={56} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-bold text-sm" style={{ color: up?.color }}>{up?.full_name}</span>
                       <span className="text-[11px] text-muted-foreground">{formatArDateTime(a.created_at)}</span>
                     </div>
-                    <div className="mt-1 inline-flex items-center gap-3 rounded-xl border bg-accent/40 px-3 py-2 max-w-full">
+                    <div className={cn(
+                      "mt-1 inline-flex items-center gap-3 rounded-xl border bg-accent/40 px-3 py-2 max-w-full transition-all duration-300",
+                      highlightAttId === a.id && "ring-2 ring-primary scale-[1.02] bg-primary/10",
+                    )}>
                       <FileText className="h-5 w-5 text-primary shrink-0" />
                       <span className="text-sm truncate flex-1 min-w-0">{a.file_name}</span>
                       {href && (
