@@ -151,7 +151,7 @@ function Dashboard() {
           <EmployeeGrid tasks={tasks} profiles={profiles} profileById={profileById} myProfileId={me?.id ?? null} disableLink={isOwner} />
         )
       ) : (
-        <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me ?? undefined} isOwner={isOwner} />
+        <PersonalView allTasks={allTasksRaw} tasks={tasks} me={me ?? undefined} isOwner={isOwner} pieSize={pieSize} />
       )}
     </div>
   );
