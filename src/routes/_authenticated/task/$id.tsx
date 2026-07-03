@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { STATUS_META, type TaskStatus } from "@/lib/status";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
-import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, FileText, Loader2, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, Link as LinkIcon, FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
@@ -106,6 +106,9 @@ function TaskDetail() {
   const [uploading, setUploading] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [attachMode, setAttachMode] = useState<"file" | "link">("file");
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
@@ -156,14 +159,15 @@ function TaskDetail() {
   async function markDone() {
     if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
+    const wasLate = task?.status === "late";
     await supabase.from("tasks")
-      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString() })
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: wasLate })
       .eq("id", id);
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
         taskDetails: "",
-        type: "تم الإغلاق",
+        type: wasLate ? "تم الإغلاق متأخراً" : "تم الإغلاق",
         senderName: me.full_name,
         content: "",
         whenText: formatArDateTime(new Date()),
@@ -199,14 +203,53 @@ function TaskDetail() {
     }
     const dot = file.name.lastIndexOf(".");
     const base = dot > 0 ? file.name.slice(0, dot) : file.name;
+    setAttachMode("file");
     setPendingFile(file);
     setDisplayName(base);
+  }
+
+  function openLinkDialog() {
+    setAttachMode("link");
+    setLinkUrl("");
+    setDisplayName("");
+    setLinkDialogOpen(true);
   }
 
   function cancelUpload() {
     if (uploading) return;
     setPendingFile(null);
     setDisplayName("");
+    setLinkUrl("");
+    setLinkDialogOpen(false);
+  }
+
+  async function confirmLink() {
+    if (!me) return;
+    const name = displayName.trim();
+    const url = linkUrl.trim();
+    if (!name) { toast.error("أدخل اسم الملف"); return; }
+    if (!url || !url.toLowerCase().startsWith("http")) { toast.error("أدخل رابطاً صحيحاً"); return; }
+    setUploading(true);
+    try {
+      const { error: insErr } = await supabase.from("task_attachments").insert({
+        task_id: id,
+        uploaded_by: me.id,
+        file_name: name,
+        file_url: url,
+        drive_file_id: null,
+        drive_view_url: url,
+      });
+      if (insErr) { toast.error("فشل حفظ المرفق"); return; }
+      toast.success("تم رفع الملف ✓");
+      qc.invalidateQueries({ queryKey: ["task-attachments", id] });
+      setLinkUrl("");
+      setDisplayName("");
+      setLinkDialogOpen(false);
+    } catch {
+      toast.error("فشل حفظ المرفق");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function confirmUpload() {
@@ -439,6 +482,17 @@ function TaskDetail() {
                 <Paperclip className="h-4 w-4" />
                 إرفاق ملف
               </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openLinkDialog}
+                disabled={uploading}
+                aria-label="إرفاق رابط"
+                title="إرفاق رابط"
+              >
+                <LinkIcon className="h-4 w-4" />
+                إرفاق رابط
+              </Button>
               <Button onClick={send} disabled={!content.trim()} className="bg-primary text-primary-foreground">
                 <Send className="h-4 w-4" />إرسال
               </Button>
@@ -476,6 +530,48 @@ function TaskDetail() {
             >
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {uploading ? "جاري الرفع..." : "رفع"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={linkDialogOpen} onOpenChange={(o) => { if (!o) cancelUpload(); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>إرفاق رابط</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-link-url">الرابط</Label>
+              <Input
+                id="attachment-link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://..."
+                disabled={uploading}
+                autoFocus
+                dir="ltr"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="attachment-link-name">اسم الملف على الداشبورد</Label>
+              <Input
+                id="attachment-link-name"
+                value={attachMode === "link" ? displayName : ""}
+                onChange={(e) => setDisplayName(e.target.value)}
+                disabled={uploading}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={cancelUpload} disabled={uploading}>إلغاء</Button>
+            <Button
+              onClick={confirmLink}
+              disabled={uploading || !displayName.trim() || !linkUrl.trim()}
+              className="bg-primary text-primary-foreground"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {uploading ? "جاري الحفظ..." : "حفظ"}
             </Button>
           </DialogFooter>
         </DialogContent>

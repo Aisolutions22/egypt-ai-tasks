@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 type TaskRow = {
   id: string; title: string; status: TaskStatus;
   created_at: string; deadline: string; is_active: boolean;
+  finished_late: boolean;
   task_assignments: { user_id: string }[];
 };
 
@@ -51,7 +52,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select("id, title, status, created_at, deadline, is_active, task_assignments(user_id)")
+        .select("id, title, status, created_at, deadline, is_active, finished_late, task_assignments(user_id)")
         .order("deadline", { ascending: true });
       if (error) throw error;
       return (data ?? []) as TaskRow[];
@@ -261,6 +262,7 @@ function toCard(t: TaskRow, color: string): TaskCardData {
     id: t.id, title: t.title, status: t.status,
     created_at: t.created_at, deadline: t.deadline,
     borderColor: color,
+    finished_late: t.finished_late,
   };
 }
 

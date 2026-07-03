@@ -10,6 +10,7 @@ export interface TaskCardData {
   created_at: string;
   deadline: string;
   borderColor: string;
+  finished_late?: boolean;
 }
 
 export function TaskCard({ task, disableLink }: { task: TaskCardData; disableLink?: boolean }) {
@@ -25,12 +26,23 @@ export function TaskCard({ task, disableLink }: { task: TaskCardData; disableLin
     <>
       <div className="flex items-start justify-between gap-2">
         <h2 className="font-bold text-sm leading-snug line-clamp-2 flex-1">{task.title}</h2>
-        <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0"
-          style={{ backgroundColor: s.color, color: s.textOn }}
-        >
-          {s.label}
-        </span>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: s.color, color: s.textOn }}
+          >
+            {s.label}
+          </span>
+          {task.status === "closed" && task.finished_late && (
+            <span
+              className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: "#D97706", color: "#fff" }}
+              title="انتهت متأخرة"
+            >
+              ⚑ انتهت متأخرة
+            </span>
+          )}
+        </div>
       </div>
       <div className="mt-2 text-[11px] text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
         <span>أُنشئت: {formatArDate(task.created_at)}</span>

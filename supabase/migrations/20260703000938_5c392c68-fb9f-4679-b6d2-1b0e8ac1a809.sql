@@ -1,0 +1,1 @@
+ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS finished_late boolean NOT NULL DEFAULT false;
