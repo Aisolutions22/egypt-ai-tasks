@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAllProfiles, useMyProfile } from "@/lib/use-profile";
 import { Input } from "@/components/ui/input";
 import { AvatarCircle } from "@/components/avatar-circle";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { Search, ArchiveX } from "lucide-react";
 
@@ -35,7 +36,7 @@ function ArchivePage() {
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const [q, setQ] = useState("");
 
-  const { data: tasks = [] } = useQuery({
+  const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["archive-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -65,7 +66,13 @@ function ArchivePage() {
         <Input placeholder="ابحث عن مهمة أو موظف..." className="pr-10" value={q} onChange={(e) => setQ(e.target.value)} />
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="glass rounded-2xl p-3 space-y-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
           <ArchiveX className="h-10 w-10 mx-auto mb-2 opacity-50" />
           لا توجد مهام مؤرشفة

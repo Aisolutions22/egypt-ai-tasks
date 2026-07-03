@@ -14,6 +14,7 @@ import { formatArDate, toArabicDigits } from "@/lib/date-ar";
 import type { TaskStatus } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -130,7 +131,13 @@ function Dashboard() {
         </div>
       )}
 
-      {isLoading && <div className="text-sm text-muted-foreground">جاري التحميل...</div>}
+      {isLoading && (
+        <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-32 rounded-xl" />
+          ))}
+        </div>
+      )}
 
       {!isLoading && tasks.length === 0 && (
         <div className="glass rounded-2xl p-10 text-center">

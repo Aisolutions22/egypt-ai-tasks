@@ -15,6 +15,7 @@ import { formatArDate, formatArDateTime } from "@/lib/date-ar";
 import { ArrowRight, Check, Flag, Reply, X, Send, Paperclip, Link as LinkIcon, FileText, Loader2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
 import { uploadDriveFile } from "@/lib/drive-upload.functions";
 
@@ -109,6 +110,8 @@ function TaskDetail() {
   const [attachMode, setAttachMode] = useState<"file" | "link">("file");
   const [linkUrl, setLinkUrl] = useState("");
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [closingPulse, setClosingPulse] = useState(0);
+  const [highlightAttId, setHighlightAttId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const uploadFile = useServerFn(uploadDriveFile);
@@ -130,7 +133,13 @@ function TaskDetail() {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, []);
 
-  if (!task) return <div className="text-sm text-muted-foreground">جاري التحميل...</div>;
+  if (!task) return (
+    <div className="space-y-4 max-w-4xl mx-auto">
+      <Skeleton className="h-16 rounded-2xl" />
+      <Skeleton className="h-24 rounded-2xl" />
+      <Skeleton className="h-64 rounded-2xl" />
+    </div>
+  );
 
   const s = STATUS_META[task.status as TaskStatus];
   const closed = task.status === "closed";
@@ -189,6 +198,7 @@ function TaskDetail() {
       },
     }).catch(() => {});
     toast.success("تم الإغلاق ✓");
+    setClosingPulse((n) => n + 1);
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
   }
@@ -209,6 +219,7 @@ function TaskDetail() {
       },
     }).catch(() => {});
     toast.success("تم الإغلاق ✓");
+    setClosingPulse((n) => n + 1);
     qc.invalidateQueries({ queryKey: ["task", id] });
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
   }
@@ -266,16 +277,20 @@ function TaskDetail() {
     if (!url || !url.toLowerCase().startsWith("http")) { toast.error("أدخل رابطاً صحيحاً"); return; }
     setUploading(true);
     try {
-      const { error: insErr } = await supabase.from("task_attachments").insert({
+      const { data: inserted, error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
         file_name: name,
         file_url: url,
         drive_file_id: null,
         drive_view_url: url,
-      });
+      }).select("id").single();
       if (insErr) { toast.error("فشل حفظ المرفق"); return; }
       toast.success("تم رفع الملف ✓");
+      if (inserted?.id) {
+        setHighlightAttId(inserted.id);
+        setTimeout(() => setHighlightAttId(null), 1200);
+      }
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
       setLinkUrl("");
       setDisplayName("");
@@ -320,19 +335,23 @@ function TaskDetail() {
         toast.error("فشل رفع الملف");
         return;
       }
-      const { error: insErr } = await supabase.from("task_attachments").insert({
+      const { data: inserted, error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
         file_name: name,
         file_url: res.viewUrl,
         drive_file_id: res.driveFileId,
         drive_view_url: res.viewUrl,
-      });
+      }).select("id").single();
       if (insErr) {
         toast.error("فشل حفظ المرفق");
         return;
       }
       toast.success("تم رفع الملف ✓");
+      if (inserted?.id) {
+        setHighlightAttId(inserted.id);
+        setTimeout(() => setHighlightAttId(null), 1200);
+      }
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
       setPendingFile(null);
       setDisplayName("");
@@ -352,7 +371,14 @@ function TaskDetail() {
           <Link to="/dashboard"><ArrowRight className="h-4 w-4" />رجوع</Link>
         </Button>
         <h1 className="text-lg md:text-xl font-bold flex-1 min-w-0">{task.title}</h1>
-        <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: s.color, color: s.textOn }}>
+        <span
+          key={`badge-${closingPulse}`}
+          className={cn(
+            "px-2.5 py-1 rounded-full text-xs font-bold transition-transform",
+            closingPulse > 0 && "animate-scale-in",
+          )}
+          style={{ background: s.color, color: s.textOn }}
+        >
           {s.label}
         </span>
         {isAdmin && !closed && (
@@ -428,7 +454,8 @@ function TaskDetail() {
                 const isMine = m.sender_id === me?.id;
                 const replied = m.reply_to_id ? messages.find((x) => x.id === m.reply_to_id) : null;
                 return (
-                  <div key={`m-${m.id}`} className="flex gap-2.5">
+                  <div key={`m-${m.id}`} className="flex gap-2.5 animate-fade-in transition-all duration-200">
+
                     <AvatarCircle name={sender?.full_name ?? "؟"} color={sender?.color ?? "#999"} avatarUrl={sender?.avatar_url} size={56} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
@@ -447,7 +474,7 @@ function TaskDetail() {
                         {m.content}
                       </div>
                       <button
-                        className="text-[11px] text-muted-foreground hover:text-primary inline-flex items-center gap-1 mt-1"
+                        className="text-[11px] text-muted-foreground hover:text-primary inline-flex items-center gap-1 mt-1 transition-transform duration-150 hover:scale-105 active:scale-95"
                         onClick={() => setReplyTo(m)}
                       >
                         <Reply className="h-3 w-3" />رد
@@ -460,14 +487,17 @@ function TaskDetail() {
               const up = profileById.get(a.uploaded_by);
               const href = a.drive_view_url ?? "";
               return (
-                <div key={`a-${a.id}`} className="flex gap-2.5">
+                <div key={`a-${a.id}`} className="flex gap-2.5 animate-fade-in transition-all duration-200">
                   <AvatarCircle name={up?.full_name ?? "؟"} color={up?.color ?? "#999"} avatarUrl={up?.avatar_url} size={56} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-bold text-sm" style={{ color: up?.color }}>{up?.full_name}</span>
                       <span className="text-[11px] text-muted-foreground">{formatArDateTime(a.created_at)}</span>
                     </div>
-                    <div className="mt-1 inline-flex items-center gap-3 rounded-xl border bg-accent/40 px-3 py-2 max-w-full">
+                    <div className={cn(
+                      "mt-1 inline-flex items-center gap-3 rounded-xl border bg-accent/40 px-3 py-2 max-w-full transition-all duration-300",
+                      highlightAttId === a.id && "ring-2 ring-primary scale-[1.02] bg-primary/10",
+                    )}>
                       <FileText className="h-5 w-5 text-primary shrink-0" />
                       <span className="text-sm truncate flex-1 min-w-0">{a.file_name}</span>
                       {href && (
