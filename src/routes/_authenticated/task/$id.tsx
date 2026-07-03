@@ -156,14 +156,15 @@ function TaskDetail() {
   async function markDone() {
     if (!me) return;
     if (!confirm("هل أنت متأكد من إغلاق هذه المهمة؟")) return;
+    const wasLate = task?.status === "late";
     await supabase.from("tasks")
-      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString() })
+      .update({ status: "closed", is_active: false, closed_by: me.id, closed_at: new Date().toISOString(), finished_late: wasLate })
       .eq("id", id);
     archiveToSheet({
       data: {
         taskTitle: task?.title ?? "",
         taskDetails: "",
-        type: "تم الإغلاق",
+        type: wasLate ? "تم الإغلاق متأخراً" : "تم الإغلاق",
         senderName: me.full_name,
         content: "",
         whenText: formatArDateTime(new Date()),
