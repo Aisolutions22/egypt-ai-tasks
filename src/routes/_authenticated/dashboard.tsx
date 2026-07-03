@@ -42,6 +42,8 @@ function Dashboard() {
   const isAdmin = me?.role === "admin";
   const isOwner = me?.role === "owner";
   const canSeeAll = isAdmin || isOwner;
+  const isMobile = useIsMobile();
+  const pieSize = isMobile ? 90 : 120;
   const qc = useQueryClient();
 
   // Fetch ALL tasks (including closed/archived) so counters reflect everything.
