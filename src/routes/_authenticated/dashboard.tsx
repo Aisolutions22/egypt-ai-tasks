@@ -294,7 +294,7 @@ function toCard(t: TaskRow, color: string): TaskCardData {
 }
 
 function AnalyticsView({ profiles, allTasks }: { profiles: Profile[]; allTasks: TaskRow[] }) {
-  const employees = profiles.filter((p) => p.role === "employee");
+  const employees = profiles.filter((p) => p.role === "employee" && p.is_active);
   if (employees.length === 0) {
     return (
       <div className="glass rounded-2xl p-10 text-center">
