@@ -335,19 +335,23 @@ function TaskDetail() {
         toast.error("فشل رفع الملف");
         return;
       }
-      const { error: insErr } = await supabase.from("task_attachments").insert({
+      const { data: inserted, error: insErr } = await supabase.from("task_attachments").insert({
         task_id: id,
         uploaded_by: me.id,
         file_name: name,
         file_url: res.viewUrl,
         drive_file_id: res.driveFileId,
         drive_view_url: res.viewUrl,
-      });
+      }).select("id").single();
       if (insErr) {
         toast.error("فشل حفظ المرفق");
         return;
       }
       toast.success("تم رفع الملف ✓");
+      if (inserted?.id) {
+        setHighlightAttId(inserted.id);
+        setTimeout(() => setHighlightAttId(null), 1200);
+      }
       qc.invalidateQueries({ queryKey: ["task-attachments", id] });
       setPendingFile(null);
       setDisplayName("");
