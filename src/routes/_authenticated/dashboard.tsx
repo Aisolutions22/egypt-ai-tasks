@@ -188,13 +188,13 @@ function StatCard({ icon: Icon, label, value, tint, active, onClick }: { icon: t
 function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }: {
   tasks: TaskRow[]; profiles: Profile[]; profileById: Map<string, Profile>; myProfileId: string | null; disableLink?: boolean;
 }) {
-  const employees = profiles.filter((p) => p.role === "employee");
+  const employees = profiles.filter((p) => p.role === "employee" && p.is_active);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   if (employees.length === 0) {
     return (
       <div className="glass rounded-2xl p-10 text-center">
         <Inbox className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <p className="text-foreground font-medium">لا يوجد موظفون بعد</p>
+        <p className="text-foreground font-medium">لا يوجد موظفون نشطون</p>
         <Button asChild className="mt-4 bg-primary text-primary-foreground hover:opacity-90 active:scale-95">
           <Link to="/add-colleague"><Plus className="h-4 w-4" />إضافة موظف</Link>
         </Button>
@@ -240,6 +240,23 @@ function EmployeeGrid({ tasks, profiles, profileById, myProfileId, disableLink }
       })}
     </div>
   );
+}
+
+function TaskFlatGrid({ tasks, profileById, disableLink }: {
+  tasks: TaskRow[]; profileById: Map<string, Profile>; disableLink?: boolean;
+}) {
+  return (
+    <div className="grid gap-3 grid-cols-[repeat(auto-fill,minmax(270px,1fr))]">
+      {tasks.map((t) => (
+        <TaskCard key={t.id} task={toCard(t, taskColor(t, profileById))} disableLink={disableLink} />
+      ))}
+    </div>
+  );
+}
+
+function taskColor(t: TaskRow, profileById: Map<string, Profile>): string {
+  const firstAssignee = t.task_assignments[0]?.user_id;
+  return firstAssignee ? (profileById.get(firstAssignee)?.color ?? "#64748B") : "#64748B";
 }
 
 function PersonalView({ allTasks, tasks, me, isOwner, pieSize }: {
