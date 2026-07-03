@@ -81,6 +81,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:url", content: "https://ai-tasks-solutions.lovable.app/" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KtqGVkh2ZOQmeKb7IKlh7rKzoS92/social-images/social-1783047215913-ChatGPT_Image_Jul_3,_2026,_05_51_15_AM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KtqGVkh2ZOQmeKb7IKlh7rKzoS92/social-images/social-1783047215913-ChatGPT_Image_Jul_3,_2026,_05_51_15_AM.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
