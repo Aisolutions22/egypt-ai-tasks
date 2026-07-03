@@ -203,14 +203,53 @@ function TaskDetail() {
     }
     const dot = file.name.lastIndexOf(".");
     const base = dot > 0 ? file.name.slice(0, dot) : file.name;
+    setAttachMode("file");
     setPendingFile(file);
     setDisplayName(base);
+  }
+
+  function openLinkDialog() {
+    setAttachMode("link");
+    setLinkUrl("");
+    setDisplayName("");
+    setLinkDialogOpen(true);
   }
 
   function cancelUpload() {
     if (uploading) return;
     setPendingFile(null);
     setDisplayName("");
+    setLinkUrl("");
+    setLinkDialogOpen(false);
+  }
+
+  async function confirmLink() {
+    if (!me) return;
+    const name = displayName.trim();
+    const url = linkUrl.trim();
+    if (!name) { toast.error("أدخل اسم الملف"); return; }
+    if (!url || !url.toLowerCase().startsWith("http")) { toast.error("أدخل رابطاً صحيحاً"); return; }
+    setUploading(true);
+    try {
+      const { error: insErr } = await supabase.from("task_attachments").insert({
+        task_id: id,
+        uploaded_by: me.id,
+        file_name: name,
+        file_url: url,
+        drive_file_id: null,
+        drive_view_url: url,
+      });
+      if (insErr) { toast.error("فشل حفظ المرفق"); return; }
+      toast.success("تم رفع الملف ✓");
+      qc.invalidateQueries({ queryKey: ["task-attachments", id] });
+      setLinkUrl("");
+      setDisplayName("");
+      setLinkDialogOpen(false);
+    } catch {
+      toast.error("فشل حفظ المرفق");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function confirmUpload() {
