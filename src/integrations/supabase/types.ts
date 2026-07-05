@@ -354,11 +354,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_my_profile_id: { Args: never; Returns: string }
-      get_my_role: {
-        Args: never
-        Returns: Database["public"]["Enums"]["app_role"]
-      }
       get_profile_emails: {
         Args: never
         Returns: {
@@ -366,9 +361,6 @@ export type Database = {
           id: string
         }[]
       }
-      is_admin_only: { Args: never; Returns: boolean }
-      is_admin_or_owner: { Args: never; Returns: boolean }
-      is_assigned_to_task: { Args: { _task_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "admin" | "employee"
