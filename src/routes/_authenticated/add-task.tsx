@@ -132,19 +132,28 @@ function AddTaskPage() {
       })),
     );
 
-    // Email via Apps Script (fire-and-forget, per recipient) — never blocks UX
+    // Email via Apps Script — awaited so we can surface delivery failures
     try {
-      const { data: rows } = await supabase.rpc("get_profile_emails");
+      const { data: rows, error: rpcErr } = await supabase.rpc("get_profile_emails");
+      if (rpcErr) console.error("get_profile_emails error", rpcErr);
       const emailById = new Map<string, string>((rows ?? []).map((r: { id: string; email: string | null }) => [r.id, r.email ?? ""]));
       const assignees = profiles.filter((p) => ids.includes(p.id));
       const valid = assignees
         .map((p) => ({ email: emailById.get(p.id) ?? "", name: p.full_name }))
         .filter((e) => e.email);
+      const missing = assignees.length - valid.length;
       const deadlineText = new Date(deadlineIso).toLocaleString("ar-EG");
-      for (const r of valid) {
-        sendEmail({ data: { to: r.email, name: r.name, taskTitle: title.trim(), deadlineText } }).catch(() => {});
-      }
-    } catch { /* silent */ }
+      const results = await Promise.allSettled(
+        valid.map((r) => sendEmail({ data: { to: r.email, name: r.name, taskTitle: title.trim(), deadlineText } })),
+      );
+      const failed = results.filter((r) => r.status === "rejected" || (r.status === "fulfilled" && !(r.value as { ok: boolean }).ok)).length;
+      if (missing > 0) toast.warning(`${missing} موظف بدون بريد إلكتروني`);
+      if (failed > 0) toast.error(`فشل إرسال ${failed} بريد إلكتروني`);
+      else if (valid.length > 0) toast.success(`تم إرسال ${valid.length} بريد إلكتروني ✓`);
+    } catch (e) {
+      console.error("email dispatch failed", e);
+      toast.error("فشل إرسال البريد الإلكتروني");
+    }
 
     setSaving(false);
     qc.invalidateQueries({ queryKey: ["dashboard-tasks"] });
