@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AvatarCircle } from "@/components/avatar-circle";
-import { sendNewTaskEmail } from "@/lib/email.functions";
+import { sendTaskEmail } from "@/lib/apps-script-email.functions";
 import { archiveMessageToSheet } from "@/lib/sheets-archive.functions";
 import { formatArDateTime } from "@/lib/date-ar";
 import { toast } from "sonner";
@@ -40,7 +40,7 @@ function AddTaskPage() {
   const { data: me } = useMyProfile();
   const { data: profiles = [] } = useAllProfiles();
   const employees = profiles.filter((p) => p.is_active && (p.role === "employee" || p.role === "admin"));
-  const sendEmail = useServerFn(sendNewTaskEmail);
+  const sendEmail = useServerFn(sendTaskEmail);
   const archiveToSheet = useServerFn(archiveMessageToSheet);
   const qc = useQueryClient();
 
@@ -132,8 +132,7 @@ function AddTaskPage() {
       })),
     );
 
-    // Email (best-effort) — use server-side RPC that reads profiles.email (populated by backfill),
-    // since supabase.auth.admin.* is not available from the browser client.
+    // Email via Apps Script (fire-and-forget, per recipient) — never blocks UX
     try {
       const { data: rows } = await supabase.rpc("get_profile_emails");
       const emailById = new Map<string, string>((rows ?? []).map((r: { id: string; email: string | null }) => [r.id, r.email ?? ""]));
@@ -141,7 +140,10 @@ function AddTaskPage() {
       const valid = assignees
         .map((p) => ({ email: emailById.get(p.id) ?? "", name: p.full_name }))
         .filter((e) => e.email);
-      if (valid.length) await sendEmail({ data: { recipients: valid, task_title: title.trim(), deadline_iso: deadlineIso } });
+      const deadlineText = new Date(deadlineIso).toLocaleString("ar-EG");
+      for (const r of valid) {
+        sendEmail({ data: { to: r.email, name: r.name, taskTitle: title.trim(), deadlineText } }).catch(() => {});
+      }
     } catch { /* silent */ }
 
     setSaving(false);
