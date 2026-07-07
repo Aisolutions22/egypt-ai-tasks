@@ -195,7 +195,7 @@ function SettingsPage() {
     if (pw.length < 8) return toast.error("٨ أحرف على الأقل");
     try {
       await resetPw({ data: { profile_id: id, password: pw } });
-      toast.success(`تم تعيين كلمة المرور. شاركها مع ${full_name}: ${pw}`, { duration: 10000 });
+      toast.success(`تم تعيين كلمة مرور جديدة لـ ${full_name} بنجاح`);
     } catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
   }
 
@@ -297,7 +297,7 @@ function SettingsPage() {
                     <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{emailById.get(p.id)}</div>
                   )}
                 </div>
-                {isAdminOnly && (
+                {isAdminOnly && p.role !== "owner" && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
                     <KeyRound className="h-4 w-4" />
                   </Button>
