@@ -297,7 +297,7 @@ function SettingsPage() {
                     <div dir="ltr" className="text-[11px] text-muted-foreground truncate text-left">{emailById.get(p.id)}</div>
                   )}
                 </div>
-                {isAdminOnly && (
+                {isAdminOnly && p.role !== "owner" && (
                   <Button size="icon" variant="ghost" onClick={() => resetColleaguePw(p.id, p.full_name)} title="إعادة تعيين كلمة المرور">
                     <KeyRound className="h-4 w-4" />
                   </Button>
