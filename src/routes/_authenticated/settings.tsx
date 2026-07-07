@@ -195,7 +195,7 @@ function SettingsPage() {
     if (pw.length < 8) return toast.error("٨ أحرف على الأقل");
     try {
       await resetPw({ data: { profile_id: id, password: pw } });
-      toast.success(`تم تعيين كلمة المرور. شاركها مع ${full_name}: ${pw}`, { duration: 10000 });
+      toast.success(`تم تعيين كلمة مرور جديدة لـ ${full_name} بنجاح`);
     } catch (e: unknown) { toast.error(e instanceof Error ? e.message : "خطأ"); }
   }
 
